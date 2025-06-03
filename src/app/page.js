@@ -4,16 +4,18 @@ import ReactLenis from "@studio-freight/react-lenis";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import SplitType from "split-type";
 import SpotifyPlayer from "./components/SpotifyPlayer";
 import CurrentlyPlaying from "./components/CurrentlyPlaying";
+import ScrollProgress from "./components/ScrollProgress";
+import SectionTransitions from "./components/SectionTransitions";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
+gsap.registerPlugin(useGSAP, ScrollTrigger, ScrollToPlugin);
 
 export default function Home() {
   const container = useRef();
   const vinylRef = useRef();
-  const [activeTrack, setActiveTrack] = useState(null);
   const [currentSpotifyTrack, setCurrentSpotifyTrack] = useState(null);
   const [isClient, setIsClient] = useState(false);
 
@@ -22,6 +24,14 @@ export default function Home() {
     { id: 2, title: "Projects", section: "projects" },
     { id: 3, title: "Experience", section: "timeline" },
     { id: 4, title: "Photography", section: "photography" }
+  ];
+
+  const sections = [
+    { id: "home", title: "Home" },
+    { id: "about", title: "About Me" },
+    { id: "projects", title: "Projects" },
+    { id: "timeline", title: "Experience" },
+    { id: "photography", title: "Photography" }
   ];
 
   useEffect(() => {
@@ -99,49 +109,26 @@ export default function Home() {
         delay: 2
       });
 
-      // Section animations on scroll
-      gsap.utils.toArray(".content-section").forEach((section) => {
-        const heading = section.querySelector("h2");
-        const content = section.querySelectorAll(".about-text p, .project-item, .timeline-item, .photo-item");
-
-        gsap.set(heading, { y: 100, opacity: 0 });
-        gsap.to(heading, {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 80%",
-            toggleActions: "play none none reverse"
-          }
-        });
-
-        gsap.set(content, { y: 80, opacity: 0 });
-        gsap.to(content, {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 70%",
-            toggleActions: "play none none reverse"
-          }
-        });
-      });
-
-      // Parallax effect for vinyl record
+      // Enhanced parallax effect for vinyl record
       gsap.to(".vinyl-record", {
-        yPercent: -20,
+        yPercent: -30,
+        rotation: "+=180",
         ease: "none",
         scrollTrigger: {
           trigger: ".vinyl-container",
           start: "top bottom",
           end: "bottom top",
-          scrub: true
+          scrub: 1,
         }
+      });
+
+      // Floating animation for vinyl when not scrolling
+      gsap.to(".vinyl-record", {
+        y: "+=10",
+        duration: 3,
+        ease: "power2.inOut",
+        yoyo: true,
+        repeat: -1,
       });
 
     },
@@ -173,31 +160,51 @@ export default function Home() {
     if (!isClient) return;
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
+      gsap.to(window, {
+        scrollTo: { 
+          y: element, 
+          offsetY: 0 
+        },
+        duration: 1.5,
+        ease: "power2.inOut",
       });
     }
   };
 
-  const handleTrackHover = (trackId) => {
+  const handleTrackHover = (trackId, event) => {
     if (!isClient) return;
-    setActiveTrack(trackId);
-    gsap.to(`.track-${trackId}`, {
-      scale: 1.05,
-      x: 10,
-      duration: 0.3,
+    event.stopPropagation();
+    
+    const trackElement = event.currentTarget;
+    if (!trackElement) return;
+    
+    // Kill any existing animations
+    gsap.killTweensOf(trackElement);
+    
+    gsap.to(trackElement, {
+      scale: 1.02,
+      x: 12,
+      backgroundColor: "rgba(255, 255, 255, 0.03)",
+      duration: 0.2,
       ease: "power2.out"
     });
   };
 
-  const handleTrackLeave = (trackId) => {
+  const handleTrackLeave = (trackId, event) => {
     if (!isClient) return;
-    setActiveTrack(null);
-    gsap.to(`.track-${trackId}`, {
+    event.stopPropagation();
+    
+    const trackElement = event.currentTarget;
+    if (!trackElement) return;
+    
+    // Kill any existing animations
+    gsap.killTweensOf(trackElement);
+    
+    gsap.to(trackElement, {
       scale: 1,
       x: 0,
-      duration: 0.3,
+      backgroundColor: "transparent",
+      duration: 0.2,
       ease: "power2.out"
     });
   };
@@ -208,7 +215,11 @@ export default function Home() {
   return (
     <ReactLenis root>
       <div className="vinyl-homepage" ref={container}>
-        <div className="vinyl-container">
+        <ScrollProgress />
+        <SectionTransitions sections={sections} />
+        
+        <section id="home" className="vinyl-container">
+          <div className="section-bg"></div>
           <div className="vinyl-side" ref={vinylRef}>
             <div className="vinyl-record">
               <img src={vinylImage} alt={vinylAlt} className="vinyl-image" />
@@ -236,9 +247,10 @@ export default function Home() {
               {tracks.map((track) => (
                 <div
                   key={track.id}
-                  className={`track-item track-${track.id}`}
-                  onMouseEnter={() => handleTrackHover(track.id)}
-                  onMouseLeave={() => handleTrackLeave(track.id)}
+                  className="track-item animate-in"
+                  data-track={track.id}
+                  onMouseEnter={(event) => handleTrackHover(track.id, event)}
+                  onMouseLeave={(event) => handleTrackLeave(track.id, event)}
                   onClick={() => handleTrackClick(track.section)}
                 >
                   <span className="track-number">0{track.id}</span>
@@ -249,7 +261,7 @@ export default function Home() {
             </div>
             
             <div className="bio-section">
-              <p className="bio-text">
+              <p className="bio-text animate-in">
                 I'm a creative professional who captures striking and artistic 
                 images. My work focuses on light, shadow, and movement, creating 
                 pieces that feel both modern and timeless. With a minimal and 
@@ -257,19 +269,20 @@ export default function Home() {
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         <section id="about" className="content-section about-section">
+          <div className="section-bg"></div>
           <div className="section-container">
-            <h2>About Me</h2>
+            <h2 className="animate-in">About Me</h2>
             <div className="about-content">
               <div className="about-text">
-                <p>
+                <p className="animate-in">
                   I'm a passionate creative professional with expertise in photography, 
                   design, and development. My work spans across various disciplines, 
                   always focusing on creating meaningful and impactful experiences.
                 </p>
-                <p>
+                <p className="animate-in">
                   With an eye for detail and a love for storytelling, I strive to 
                   capture moments and create digital experiences that resonate with people.
                 </p>
@@ -279,24 +292,25 @@ export default function Home() {
         </section>
 
         <section id="projects" className="content-section projects-section">
+          <div className="section-bg"></div>
           <div className="section-container">
-            <h2>Projects</h2>
+            <h2 className="animate-in">Projects</h2>
             <div className="projects-grid">
-              <div className="project-item">
+              <div className="project-item animate-in">
                 <img src="/img1.jpeg" alt="Project 1" />
                 <div className="project-info">
                   <h3>Project Alpha</h3>
                   <p>A creative endeavor focusing on visual storytelling.</p>
                 </div>
               </div>
-              <div className="project-item">
+              <div className="project-item animate-in">
                 <img src="/img2.jpeg" alt="Project 2" />
                 <div className="project-info">
                   <h3>Project Beta</h3>
                   <p>Exploring the intersection of art and technology.</p>
                 </div>
               </div>
-              <div className="project-item">
+              <div className="project-item animate-in">
                 <img src="/img3.jpeg" alt="Project 3" />
                 <div className="project-info">
                   <h3>Project Gamma</h3>
@@ -308,24 +322,25 @@ export default function Home() {
         </section>
 
         <section id="timeline" className="content-section timeline-section">
+          <div className="section-bg"></div>
           <div className="section-container">
-            <h2>Experience Timeline</h2>
+            <h2 className="animate-in">Experience Timeline</h2>
             <div className="timeline">
-              <div className="timeline-item">
+              <div className="timeline-item animate-in">
                 <div className="timeline-date">2023 - Present</div>
                 <div className="timeline-content">
                   <h3>Senior Creative Director</h3>
                   <p>Leading creative initiatives and managing cross-functional teams.</p>
                 </div>
               </div>
-              <div className="timeline-item">
+              <div className="timeline-item animate-in">
                 <div className="timeline-date">2021 - 2023</div>
                 <div className="timeline-content">
                   <h3>Creative Specialist</h3>
                   <p>Developing innovative solutions for complex creative challenges.</p>
                 </div>
               </div>
-              <div className="timeline-item">
+              <div className="timeline-item animate-in">
                 <div className="timeline-date">2019 - 2021</div>
                 <div className="timeline-content">
                   <h3>Junior Designer</h3>
@@ -337,19 +352,20 @@ export default function Home() {
         </section>
 
         <section id="photography" className="content-section photography-section">
+          <div className="section-bg"></div>
           <div className="section-container">
-            <h2>Photography</h2>
+            <h2 className="animate-in">Photography</h2>
             <div className="photo-gallery">
-              <div className="photo-item">
+              <div className="photo-item animate-in">
                 <img src="/img1.jpeg" alt="Photography 1" />
               </div>
-              <div className="photo-item">
+              <div className="photo-item animate-in">
                 <img src="/img2.jpeg" alt="Photography 2" />
               </div>
-              <div className="photo-item">
+              <div className="photo-item animate-in">
                 <img src="/img3.jpeg" alt="Photography 3" />
               </div>
-              <div className="photo-item">
+              <div className="photo-item animate-in">
                 <img src="/img4.jpeg" alt="Photography 4" />
               </div>
             </div>

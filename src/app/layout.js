@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ViewTransitions } from "next-view-transitions";
 import AuthProvider from "./components/AuthProvider";
 
 import Nav from "./components/Nav";
@@ -22,15 +21,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ViewTransitions>
-      <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
-          <AuthProvider>
-            <Nav />
-            {children}
-          </AuthProvider>
-        </body>
-      </html>
-    </ViewTransitions>
+    <html lang="en">
+      <body className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+        <AuthProvider>
+          <Nav />
+          {children}
+        </AuthProvider>
+      </body>
+    </html>
   );
 }
