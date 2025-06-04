@@ -10,6 +10,8 @@ import SpotifyPlayer from "./components/SpotifyPlayer";
 import CurrentlyPlaying from "./components/CurrentlyPlaying";
 import ScrollProgress from "./components/ScrollProgress";
 import SectionTransitions from "./components/SectionTransitions";
+import PhotoCarousel from "./components/PhotoCarousel";
+import { photos } from "./data/photos";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, ScrollToPlugin);
 
@@ -355,20 +357,25 @@ export default function Home() {
           <div className="section-bg"></div>
           <div className="section-container">
             <h2 className="animate-in">Photography</h2>
-            <div className="photo-gallery">
-              <div className="photo-item animate-in">
-                <img src="/img1.jpeg" alt="Photography 1" />
-              </div>
-              <div className="photo-item animate-in">
-                <img src="/img2.jpeg" alt="Photography 2" />
-              </div>
-              <div className="photo-item animate-in">
-                <img src="/img3.jpeg" alt="Photography 3" />
-              </div>
-              <div className="photo-item animate-in">
-                <img src="/img4.jpeg" alt="Photography 4" />
+            
+            <div className="photography-metadata">
+              <div className="photo-gear">
+                <div className="gear-item animate-in">
+                  <span className="gear-label">Camera</span>
+                  <span className="gear-value">Fujifilm XT-30</span>
+                </div>
+                <div className="gear-item animate-in">
+                  <span className="gear-label">Lenses</span>
+                  <span className="gear-value">Fujinon XF 27mm F2.8</span>
+                </div>
+                <div className="gear-item animate-in">
+                  <span className="gear-label"></span>
+                  <span className="gear-value">Fujifilm XF 18-55mm f/2.8-4 R LM OIS</span>
+                </div>
               </div>
             </div>
+            
+            <PhotoCarousel photos={photos} />
           </div>
         </section>
       </div>

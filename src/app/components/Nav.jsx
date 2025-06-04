@@ -32,16 +32,29 @@ const Nav = () => {
 
   const handleNavClick = (e, sectionId) => {
     e.preventDefault();
-    const element = document.getElementById(sectionId);
-    if (element) {
+    
+    if (sectionId === "home") {
+      // For home, scroll to the very top
       gsap.to(window, {
         scrollTo: { 
-          y: element, 
-          offsetY: 80 // Account for nav height
+          y: 0
         },
         duration: 1.5,
         ease: "power2.inOut",
       });
+    } else {
+      // For other sections, use offset
+      const element = document.getElementById(sectionId);
+      if (element) {
+        gsap.to(window, {
+          scrollTo: { 
+            y: element, 
+            offsetY: 80 // Account for nav height
+          },
+          duration: 1.5,
+          ease: "power2.inOut",
+        });
+      }
     }
   };
 
