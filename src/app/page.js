@@ -9,7 +9,7 @@ import SplitType from "split-type";
 import SpotifyPlayer from "./components/SpotifyPlayer";
 import CurrentlyPlaying from "./components/CurrentlyPlaying";
 import ScrollProgress from "./components/ScrollProgress";
-import SectionTransitions from "./components/SectionTransitions";
+import RightNavigation from "./components/SectionTransitions";
 import PhotoCarousel from "./components/PhotoCarousel";
 import { photos } from "./data/photos";
 
@@ -44,48 +44,48 @@ export default function Home() {
     () => {
       if (!isClient) return;
 
-      // Animate vinyl record entrance
+      // Smooth vinyl record entrance
       gsap.set(vinylRef.current, {
-        scale: 0,
-        rotation: -90,
+        scale: 0.8,
+        y: 30,
         opacity: 0
       });
 
       gsap.to(vinylRef.current, {
         scale: 1,
-        rotation: 0,
+        y: 0,
         opacity: 1,
-        duration: 2,
-        ease: "back.out(1.7)",
-        delay: 0.5
+        duration: 1.5,
+        ease: "power2.out",
+        delay: 0.3
       });
 
       // Animate track list
       gsap.set(".track-item", {
-        x: 100,
+        x: 50,
         opacity: 0
       });
 
       gsap.to(".track-item", {
         x: 0,
         opacity: 1,
-        duration: 1,
-        stagger: 0.1,
-        ease: "power3.out",
-        delay: 1.5
+        duration: 0.8,
+        stagger: 0.08,
+        ease: "power2.out",
+        delay: 1
       });
 
       // Animate title
       const heroText = new SplitType(".vinyl-title", { types: "chars" });
-      gsap.set(heroText.chars, { y: 100, opacity: 0 });
+      gsap.set(heroText.chars, { y: 50, opacity: 0 });
 
       gsap.to(heroText.chars, {
         y: 0,
         opacity: 1,
-        duration: 1,
-        stagger: 0.05,
-        ease: "power4.out",
-        delay: 1
+        duration: 0.8,
+        stagger: 0.03,
+        ease: "power2.out",
+        delay: 0.8
       });
 
       // Continuous vinyl rotation
@@ -99,16 +99,30 @@ export default function Home() {
 
       // Animate bio text
       gsap.set(".bio-text", {
-        y: 50,
+        y: 30,
         opacity: 0
       });
 
       gsap.to(".bio-text", {
         y: 0,
         opacity: 1,
+        duration: 0.8,
+        ease: "power2.out",
+        delay: 1.5
+      });
+
+      // Smooth Spotify/music section entrance
+      gsap.set(".vinyl-music-section", {
+        y: 20,
+        opacity: 0
+      });
+
+      gsap.to(".vinyl-music-section", {
+        y: 0,
+        opacity: 1,
         duration: 1,
-        ease: "power3.out",
-        delay: 2
+        ease: "power2.out",
+        delay: 1.2
       });
 
       // Enhanced parallax effect for vinyl record
@@ -124,14 +138,189 @@ export default function Home() {
         }
       });
 
-      // Floating animation for vinyl when not scrolling
+      // Subtle floating animation for vinyl when not scrolling
       gsap.to(".vinyl-record", {
-        y: "+=10",
-        duration: 3,
-        ease: "power2.inOut",
+        y: "+=5",
+        duration: 4,
+        ease: "power1.inOut",
         yoyo: true,
         repeat: -1,
       });
+
+      // Section animations
+      const sections = [
+        { id: "about", elements: ".about-text p" },
+        { id: "projects", elements: ".project-item" },
+        { id: "timeline", elements: ".timeline-item" },
+        { id: "photography", elements: ".photography-metadata .gear-item" }
+      ];
+
+      // Set initial states for section headers
+      gsap.set(".content-section h2", {
+        y: 0,
+        opacity: 1
+      });
+
+      sections.forEach((section) => {
+        ScrollTrigger.create({
+          trigger: `#${section.id}`,
+          start: "top 70%",
+          end: "bottom 30%",
+          onEnter: () => {
+            if (section.id === "timeline") {
+              // Timeline specific animations
+              const timelineItems = gsap.utils.toArray(".timeline-item");
+              
+              // Animate the central line drawing in
+              gsap.set(".timeline::before", {
+                scaleY: 0,
+                transformOrigin: "top center"
+              });
+              
+              gsap.to(".timeline::before", {
+                scaleY: 1,
+                duration: 1.5,
+                ease: "power2.out",
+                delay: 0.3
+              });
+              
+              timelineItems.forEach((item, index) => {
+                const dot = item.querySelector(".timeline-dot");
+                const date = item.querySelector(".timeline-date");
+                const info = item.querySelector(".timeline-info");
+                const color = item.getAttribute("data-color");
+                
+                // Set initial states
+                gsap.set([dot, date, info], {
+                  opacity: 0
+                });
+                
+                gsap.set(dot, { scale: 0 });
+                gsap.set(date, { y: -30, scale: 0.8 });
+                gsap.set(info, { 
+                  x: index % 2 === 0 ? -50 : 50,
+                  y: 20 
+                });
+                
+                // Animate timeline item entrance
+                const tl = gsap.timeline({
+                  delay: 0.8 + (index * 0.3)
+                });
+                
+                tl.to(dot, {
+                  opacity: 1,
+                  scale: 1,
+                  duration: 0.4,
+                  ease: "back.out(2)"
+                })
+                .to(date, {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  duration: 0.6,
+                  ease: "back.out(1.4)"
+                }, "-=0.3")
+                .to(info, {
+                  opacity: 1,
+                  x: 0,
+                  y: 0,
+                  duration: 0.8,
+                  ease: "power2.out"
+                }, "-=0.4");
+                
+                // Add pulse animation
+                gsap.to(dot, {
+                  boxShadow: `0 0 15px ${color}60`,
+                  duration: 2.5,
+                  repeat: -1,
+                  yoyo: true,
+                  ease: "power2.inOut",
+                  delay: index * 0.4 + 2
+                });
+                
+                // Hover animations
+                const addHoverEffects = () => {
+                  item.addEventListener('mouseenter', () => {
+                    gsap.to(dot, {
+                      scale: 1.3,
+                      boxShadow: `0 0 25px ${color}80`,
+                      duration: 0.3,
+                      ease: "power2.out"
+                    });
+                  });
+                  
+                  item.addEventListener('mouseleave', () => {
+                    gsap.to(dot, {
+                      scale: 1,
+                      boxShadow: `0 0 15px ${color}60`,
+                      duration: 0.3,
+                      ease: "power2.out"
+                    });
+                  });
+                };
+                
+                addHoverEffects();
+              });
+            } else {
+              // Other sections
+              gsap.to(section.elements, {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "power2.out",
+                delay: 0.3
+              });
+            }
+          }
+        });
+      });
+
+      // Fallback: Ensure timeline is visible after page load
+      setTimeout(() => {
+        const timelineSection = document.getElementById("timeline");
+        if (timelineSection) {
+          const rect = timelineSection.getBoundingClientRect();
+          const isInView = rect.top < window.innerHeight && rect.bottom > 0;
+          
+          if (isInView) {
+            // Animate the central line if not already animated
+            if (gsap.getProperty(".timeline::before", "scaleY") === 0) {
+              gsap.to(".timeline::before", {
+                scaleY: 1,
+                duration: 1.5,
+                ease: "power2.out"
+              });
+            }
+            
+            // Animate timeline items if not already animated
+            const timelineItems = gsap.utils.toArray(".timeline-item");
+            timelineItems.forEach((item, index) => {
+              const dot = item.querySelector(".timeline-dot");
+              const color = item.getAttribute("data-color");
+              
+              if (gsap.getProperty(dot, "opacity") === 0) {
+                gsap.to(dot, {
+                  opacity: 1,
+                  scale: 1,
+                  delay: index * 0.2,
+                  duration: 0.4,
+                  ease: "back.out(2)"
+                });
+                
+                gsap.to(dot, {
+                  boxShadow: `0 0 15px ${color}60`,
+                  duration: 2.5,
+                  repeat: -1,
+                  yoyo: true,
+                  ease: "power2.inOut",
+                  delay: index * 0.4 + 1
+                });
+              }
+            });
+          }
+        }
+      }, 500);
 
     },
     { scope: container, dependencies: [currentSpotifyTrack, isClient] }
@@ -218,7 +407,7 @@ export default function Home() {
     <ReactLenis root>
       <div className="vinyl-homepage" ref={container}>
         <ScrollProgress />
-        <SectionTransitions sections={sections} />
+        <RightNavigation sections={sections} />
         
         <section id="home" className="vinyl-container">
           <div className="section-bg"></div>
@@ -264,10 +453,7 @@ export default function Home() {
             
             <div className="bio-section">
               <p className="bio-text animate-in">
-                I'm a creative professional who captures striking and artistic 
-                images. My work focuses on light, shadow, and movement, creating 
-                pieces that feel both modern and timeless. With a minimal and 
-                moody style, I bring out raw emotion and unique beauty in every project.
+                blah
               </p>
             </div>
           </div>
@@ -280,13 +466,10 @@ export default function Home() {
             <div className="about-content">
               <div className="about-text">
                 <p className="animate-in">
-                  I'm a passionate creative professional with expertise in photography, 
-                  design, and development. My work spans across various disciplines, 
-                  always focusing on creating meaningful and impactful experiences.
+                  blah blah blah
                 </p>
                 <p className="animate-in">
-                  With an eye for detail and a love for storytelling, I strive to 
-                  capture moments and create digital experiences that resonate with people.
+                  test
                 </p>
               </div>
             </div>
@@ -301,22 +484,22 @@ export default function Home() {
               <div className="project-item animate-in">
                 <img src="/img1.jpeg" alt="Project 1" />
                 <div className="project-info">
-                  <h3>Project Alpha</h3>
-                  <p>A creative endeavor focusing on visual storytelling.</p>
+                  <h3>blah</h3>
+                  <p>blah blah blah</p>
                 </div>
               </div>
               <div className="project-item animate-in">
                 <img src="/img2.jpeg" alt="Project 2" />
                 <div className="project-info">
-                  <h3>Project Beta</h3>
-                  <p>Exploring the intersection of art and technology.</p>
+                  <h3>blah</h3>
+                  <p>blah blah blah</p>
                 </div>
               </div>
               <div className="project-item animate-in">
                 <img src="/img3.jpeg" alt="Project 3" />
                 <div className="project-info">
-                  <h3>Project Gamma</h3>
-                  <p>A journey through light and shadow.</p>
+                  <h3>dn</h3>
+                  <p>blah blah</p>
                 </div>
               </div>
             </div>
@@ -328,25 +511,36 @@ export default function Home() {
           <div className="section-container">
             <h2 className="animate-in">Experience Timeline</h2>
             <div className="timeline">
-              <div className="timeline-item animate-in">
+              <div className="timeline-item" data-color="#ff6b6b">
+                <div className="timeline-dot"></div>
                 <div className="timeline-date">2023 - Present</div>
-                <div className="timeline-content">
-                  <h3>Senior Creative Director</h3>
-                  <p>Leading creative initiatives and managing cross-functional teams.</p>
+                <div className="timeline-info">
+                  <h3>Senior Software Engineer</h3>
+                  <p>Leading development of cutting-edge web applications with modern frameworks and cloud technologies</p>
                 </div>
               </div>
-              <div className="timeline-item animate-in">
+              <div className="timeline-item" data-color="#4ecdc4">
+                <div className="timeline-dot"></div>
                 <div className="timeline-date">2021 - 2023</div>
-                <div className="timeline-content">
-                  <h3>Creative Specialist</h3>
-                  <p>Developing innovative solutions for complex creative challenges.</p>
+                <div className="timeline-info">
+                  <h3>Full Stack Developer</h3>
+                  <p>Built scalable web solutions and collaborated with cross-functional teams to deliver high-quality products</p>
                 </div>
               </div>
-              <div className="timeline-item animate-in">
+              <div className="timeline-item" data-color="#45b7d1">
+                <div className="timeline-dot"></div>
                 <div className="timeline-date">2019 - 2021</div>
-                <div className="timeline-content">
-                  <h3>Junior Designer</h3>
-                  <p>Building foundational skills in design and visual communication.</p>
+                <div className="timeline-info">
+                  <h3>Frontend Developer</h3>
+                  <p>Specialized in creating responsive user interfaces and optimizing user experience across web platforms</p>
+                </div>
+              </div>
+              <div className="timeline-item" data-color="#96ceb4">
+                <div className="timeline-dot"></div>
+                <div className="timeline-date">2017 - 2019</div>
+                <div className="timeline-info">
+                  <h3>Junior Developer</h3>
+                  <p>Started my journey in web development, learning modern technologies and best practices</p>
                 </div>
               </div>
             </div>

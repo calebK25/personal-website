@@ -1,35 +1,26 @@
 "use client";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 
-const SectionTransitions = ({ sections }) => {
-  const sectionIndicatorRef = useRef(null);
-  const currentSectionRef = useRef(0);
+const RightNavigation = ({ sections }) => {
+  const [currentSection, setCurrentSection] = useState(0);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-    // Create section transition triggers
+    // Create section triggers to update active dot
     sections.forEach((section, index) => {
-      const nextIndex = (index + 1) % sections.length;
-      
       ScrollTrigger.create({
         trigger: `#${section.id}`,
         start: "top center",
         end: "bottom center",
-        onEnter: () => {
-          currentSectionRef.current = index;
-          updateSectionIndicator(section.title, index);
-        },
-        onEnterBack: () => {
-          currentSectionRef.current = index;
-          updateSectionIndicator(section.title, index);
-        },
+        onEnter: () => setCurrentSection(index),
+        onEnterBack: () => setCurrentSection(index),
       });
 
-      // Create enhanced section animations
+      // Enhanced section animations
       ScrollTrigger.create({
         trigger: `#${section.id}`,
         start: "top bottom",
@@ -39,9 +30,12 @@ const SectionTransitions = ({ sections }) => {
           if (element) {
             // Parallax effect for section backgrounds
             const yPos = -(self.progress - 0.5) * 100;
-            gsap.set(element.querySelector('.section-bg'), {
-              yPercent: yPos * 0.5,
-            });
+            const bgElement = element.querySelector('.section-bg');
+            if (bgElement) {
+              gsap.set(bgElement, {
+                yPercent: yPos * 0.5,
+              });
+            }
 
             // Scale effect as section comes into view
             const scale = 0.95 + (self.progress * 0.05);
@@ -78,66 +72,37 @@ const SectionTransitions = ({ sections }) => {
       });
     });
 
-    // Smooth section navigation
-    const handleSectionScroll = (targetId) => {
-      const target = document.getElementById(targetId);
-      if (target) {
-        gsap.to(window, {
-          scrollTo: { 
-            y: target, 
-            offsetY: 0 
-          },
-          duration: 1.5,
-          ease: "power2.inOut",
-        });
-      }
-    };
-
-    // Add scroll navigation to nav links
-    const navLinks = document.querySelectorAll('.nav a[href^="#"]');
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const targetId = link.getAttribute('href').substring(1);
-        handleSectionScroll(targetId);
-      });
-    });
-
     return () => {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-      navLinks.forEach(link => {
-        link.removeEventListener('click', handleSectionScroll);
-      });
     };
   }, [sections]);
 
-  const updateSectionIndicator = (title, index) => {
-    if (sectionIndicatorRef.current) {
-      gsap.to(sectionIndicatorRef.current, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 0.2,
-        ease: "power2.inOut",
-        onComplete: () => {
-          sectionIndicatorRef.current.textContent = title;
-          gsap.to(sectionIndicatorRef.current, {
-            opacity: 1,
-            scale: 1,
-            duration: 0.4,
-            ease: "back.out(1.7)",
-          });
+  const handleNavClick = (sectionId, index) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      gsap.to(window, {
+        scrollTo: { 
+          y: sectionId === "home" ? 0 : element, 
+          offsetY: sectionId === "home" ? 0 : 0 
         },
+        duration: 1.5,
+        ease: "power2.inOut",
       });
     }
   };
 
   return (
-    <div className="section-transitions">
-      <div className="section-indicator" ref={sectionIndicatorRef}>
-        {sections[0]?.title || "Home"}
-      </div>
+    <div className="right-nav">
+      {sections.map((section, index) => (
+        <div
+          key={section.id}
+          className={`nav-dot ${currentSection === index ? 'active' : ''}`}
+          data-label={section.title}
+          onClick={() => handleNavClick(section.id, index)}
+        />
+      ))}
     </div>
   );
 };
 
-export default SectionTransitions; 
+export default RightNavigation; 

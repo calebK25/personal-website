@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import gsap from "gsap";
 
 const PhotoCarousel = ({ photos }) => {
@@ -30,7 +30,7 @@ const PhotoCarousel = ({ photos }) => {
     });
   };
 
-  const handleCarouselClick = (e) => {
+  const handleCarouselClick = useCallback((e) => {
     // Only rotate if clicking on the carousel container or hint, not on individual photos
     if (e.target.closest('.photo-card')) return;
     
@@ -55,16 +55,16 @@ const PhotoCarousel = ({ photos }) => {
         }, 300);
       },
     });
-  };
+  }, [isAnimating, photos?.length]);
 
-  const handlePhotoClick = (photo, e) => {
+  const handlePhotoClick = useCallback((photo, e) => {
     e.stopPropagation();
     setSelectedPhoto(photo);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setSelectedPhoto(null);
-  };
+  }, []);
 
   if (!photos?.length) {
     return <div className="photo-carousel-placeholder">No photos available</div>;
@@ -97,6 +97,7 @@ const PhotoCarousel = ({ photos }) => {
                   alt={photo.title}
                   className="photo-image"
                   loading="lazy"
+                  decoding="async"
                 />
                 <div className="photo-overlay">
                   <span className="view-full-text">View Full</span>
@@ -123,6 +124,7 @@ const PhotoCarousel = ({ photos }) => {
                 src={selectedPhoto.src} 
                 alt={selectedPhoto.title}
                 className="modal-image"
+                loading="eager"
               />
             </div>
             <div className="modal-info">
