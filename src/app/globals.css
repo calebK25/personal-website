@@ -17,6 +17,28 @@
   --accent-secondary: #404040; /* Medium gray for hover effects */
   --accent-tertiary: #606060;  /* Light gray for highlights */
   
+  /* Page-Specific Accent Colors (Pastel/Neutral) */
+  --home-accent: #d4c5b9;     /* Warm beige */
+  --work-accent: #c7a8cc;     /* Soft lavender */
+  --projects-accent: #a8c8a8; /* Sage green */
+  --archive-accent: #b8c5d1;  /* Dusty blue */
+  --contact-accent: #c9a96e;  /* Warm gold */
+  --music-accent: #c4a484;    /* Warm taupe */
+  
+  /* Legacy Accent Colors */
+  --pastel-mint: #a8e6cf;     /* Soft mint green */
+  --pastel-lavender: #dda0dd; /* Soft lavender purple */
+  --pastel-peach: #ffb3ba;    /* Soft peach pink */
+  --pastel-sky: #b3d9ff;      /* Soft sky blue */
+  --pastel-lemon: #ffffba;    /* Soft lemon yellow */
+  --pastel-coral: #ffcccb;    /* Soft coral */
+  
+  /* Accent Variations */
+  --accent-mint: #96ceb4;     /* Primary mint accent */
+  --accent-lavender: #c39bd3; /* Primary lavender accent */
+  --accent-peach: #f8a4a4;    /* Primary peach accent */
+  --accent-sky: #87ceeb;      /* Primary sky accent */
+  
   /* Legacy variables for compatibility */
   --bg: var(--bg-primary);
   --copy: var(--text-primary);
@@ -34,7 +56,39 @@
 body {
   color: var(--copy);
   background: #000000;
-  font-family: "Neue Haas Grotesk Display Pro";
+  font-family: var(--font-geist-sans), "Neue Haas Grotesk Display Pro", sans-serif;
+}
+
+/* Global Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-geist-sans);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+h3 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+p {
+  font-family: "Neue Haas Grotesk Display Pro", sans-serif;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* Monospace text for technical elements */
+.mono {
+  font-family: var(--font-geist-mono), "Akkurat Mono", monospace;
 }
 
 img {
@@ -79,7 +133,7 @@ img {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--text-primary), var(--text-secondary), var(--text-tertiary));
+  background: var(--home-accent);
   transform: scaleX(0);
   transform-origin: left center;
   border-radius: 2px;
@@ -166,15 +220,17 @@ img {
 }
 
 .nav-dot.active {
-  border-top: 2px solid var(--text-primary);
-  background: var(--text-primary);
+  border-top: 2px solid var(--home-accent);
+  background: var(--home-accent);
   height: 3px;
+  box-shadow: 0 0 8px rgba(212, 197, 185, 0.4);
 }
 
 .nav-dot:hover {
-  border-top-color: var(--text-secondary);
+  border-top-color: var(--home-accent);
   transform: scaleX(1.3);
   height: 3px;
+  box-shadow: 0 0 6px rgba(212, 197, 185, 0.3);
 }
 
 .nav-dot::after {
@@ -389,7 +445,7 @@ img {
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--text-secondary), var(--text-tertiary));
+  background: linear-gradient(90deg, var(--accent-mint), var(--accent-sky));
   border-radius: 1px;
   transition: width 0.1s ease;
 }
@@ -923,7 +979,7 @@ img {
 
 .photo-card {
   position: absolute;
-  top: 40%;
+  top: 25%;
   left: 50%;
   transform: translate3d(-50%, -50%, 0px);
   width: 90%;
@@ -970,6 +1026,10 @@ img {
   font-family: "Akkurat Mono", monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.photo-card-item:nth-child(1) {
+  text-align: left;
 }
 
 .photo-card-item:nth-child(2) {
@@ -1101,7 +1161,7 @@ img {
   to {
     opacity: 1;
     backdrop-filter: blur(20px);
-  }
+}
 }
 
 .photo-modal-content {
@@ -1221,8 +1281,8 @@ img {
     margin-bottom: 2rem;
     padding: 1rem 0;
     min-height: auto;
-  }
-  
+}
+
   .vinyl-record {
     width: 280px;
     height: 280px;
@@ -1339,7 +1399,7 @@ img {
   }
   
   .photo-card {
-    top: 35%;
+    top: 25%;
     width: 90%;
     max-width: 500px;
     height: 450px;
