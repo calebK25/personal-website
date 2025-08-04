@@ -526,7 +526,7 @@ canvas {
   z-index: 10;
   opacity: 0;
   margin-left: 300px; /* Move much further to the right of the pfp */
-  margin-top: -95px; /* Move up to center with the pfp */
+  margin-top: -10px; /* Move up to center with the pfp */
 }
 
 .tech-category {
