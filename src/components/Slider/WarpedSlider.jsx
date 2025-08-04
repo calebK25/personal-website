@@ -133,9 +133,9 @@ const WarpedSlider = () => {
     content.className = "slider-content";
     content.style.opacity = "0";
 
-    // Add profile picture for About Me slide (slideIndex === 1)
+    // Add profile picture for About Me slide (slideIndex === 0)
     let profilePictureHTML = '';
-    if (slideIndex === 1 && slideData.slideImg) {
+    if (slideIndex === 0 && slideData.slideImg) {
       profilePictureHTML = `
         <div class="profile-container">
           <div class="profile-img">
@@ -147,7 +147,7 @@ const WarpedSlider = () => {
 
     // Add full name for About Me slide
     let fullNameHTML = '';
-    if (slideIndex === 1) {
+    if (slideIndex === 0) {
       fullNameHTML = `
         <div class="full-name">
           <h1>Caleb Kha-Uong</h1>
@@ -155,8 +155,35 @@ const WarpedSlider = () => {
       `;
     }
 
+    // Create tech stack HTML for About Me slide
+    let techStackHTML = '';
+    if (slideIndex === 0 && slideData.techStack) {
+      techStackHTML = `
+        <div class="tech-stack">
+          <div class="tech-category">
+            <p class="tech-category-title">Languages</p>
+            <div class="tech-items">
+              ${slideData.techStack.languages.map(lang => `<span class="tech-item">${lang}</span>`).join('')}
+            </div>
+          </div>
+          <div class="tech-category">
+            <p class="tech-category-title">Frameworks</p>
+            <div class="tech-items">
+              ${slideData.techStack.frameworks.map(framework => `<span class="tech-item">${framework}</span>`).join('')}
+            </div>
+          </div>
+          <div class="tech-category">
+            <p class="tech-category-title">Platforms</p>
+            <div class="tech-items">
+              ${slideData.techStack.platforms.map(platform => `<span class="tech-item">${platform}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     content.innerHTML = `
-      ${slideIndex === 1 && slideData.slideImg ? `
+      ${slideIndex === 0 ? `
         <div class="profile-stats-container">
           ${fullNameHTML}
           ${profilePictureHTML}
@@ -170,8 +197,8 @@ const WarpedSlider = () => {
         </div>
       </div>
       <div class="slide-tags">
-        <p>${slideIndex === 1 ? 'SOCIALS' : 'TAGS'}</p>
-        ${slideIndex === 1 ? 
+        <p>${Number(slideIndex) === 0 ? 'SOCIALS' : Number(slideIndex) === 1 ? 'INTERESTS' : Number(slideIndex) === 2 ? 'LEARNING' : Number(slideIndex) === 3 ? 'GEAR' : 'TAGS'}</p>
+        ${slideIndex === 0 ? 
                      '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
            '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
            '<p class="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>' +
@@ -180,11 +207,12 @@ const WarpedSlider = () => {
           slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
         }
       </div>
-      <div class="slide-index-wrapper">
-        <p>${slideIndex.toString().padStart(2, "0")}</p>
-        <p>/</p>
-        <p>${slides.length.toString().padStart(2, "0")}</p>
-      </div>
+      ${techStackHTML}
+              <div class="slide-index-wrapper">
+          <p>${(slideIndex + 1).toString().padStart(2, "0")}</p>
+          <p>/</p>
+          <p>${slides.length.toString().padStart(2, "0")}</p>
+        </div>
     `;
 
     return content;
@@ -295,7 +323,7 @@ const WarpedSlider = () => {
 
     timeline.call(
       () => {
-        const newContent = createSlideElement(slides[nextIndex], nextIndex + 1);
+        const newContent = createSlideElement(slides[nextIndex], nextIndex);
 
         timeline.kill();
         currentContent.remove();
@@ -466,6 +494,85 @@ const WarpedSlider = () => {
               }, 0.5);
             }
           }
+
+          // Animate tech stack with growing lines
+          const techStack = newContent.querySelector(".tech-stack");
+          if (techStack) {
+            // Set initial state for tech stack
+            gsap.set(techStack, {
+              opacity: 0,
+              scale: 0.95,
+              y: 20,
+            });
+
+            // Set initial state for category titles
+            const categoryTitles = techStack.querySelectorAll(".tech-category-title");
+            categoryTitles.forEach(title => {
+              gsap.set(title, { opacity: 0, y: 15 });
+            });
+
+            // Set initial state for tech items
+            const techItems = techStack.querySelectorAll(".tech-item");
+            if (techItems.length > 0) {
+              gsap.set(techItems, {
+                opacity: 0,
+                scale: 0.8,
+                y: 10,
+                rotationX: 15,
+              });
+            }
+
+            // Animate tech stack container
+            timeline.to(techStack, {
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              duration: 1.2,
+              ease: "power3.out",
+            }, 0.8);
+
+            // Animate category titles with growing lines first
+            categoryTitles.forEach((title, index) => {
+              timeline.to(title, {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                ease: "power2.out",
+                onComplete: () => {
+                  // Add class to trigger growing line animation
+                  title.classList.add('animate-line');
+                  title.classList.add('visible');
+                }
+              }, 1.2 + (index * 0.2));
+            });
+
+            // Animate tech items after lines are fully extended
+            if (techItems.length > 0) {
+              timeline.to(techItems, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                rotationX: 0,
+                duration: 0.6,
+                stagger: 0.04,
+                ease: "back.out(1.7)",
+                onComplete: () => {
+                  // Ensure tech items are visible after animation
+                  gsap.set(techItems, {
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                    rotationX: 0,
+                    clearProps: "all"
+                  });
+                  // Add visible class to all tech items
+                  techItems.forEach(item => item.classList.add('visible'));
+                  
+
+                }
+              }, 2.0); // Reduced delay - wait less for category titles
+            }
+          }
         }, 100);
       },
       null,
@@ -554,6 +661,93 @@ const WarpedSlider = () => {
           ease: "power2.out",
           delay: 0.5,
         });
+      }
+    }
+
+    // Animate tech stack with growing lines
+    const techStack = content.querySelector(".tech-stack");
+    if (techStack) {
+      // Set initial state
+      gsap.set(techStack, {
+        opacity: 0,
+        scale: 0.95,
+        y: 20
+      });
+
+      // Animate the tech stack container with smooth entrance
+      gsap.to(techStack, {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 1.2,
+        ease: "power3.out",
+        delay: 0.8,
+      });
+
+      // Animate category titles with growing lines first
+      const categoryTitles = techStack.querySelectorAll(".tech-category-title");
+      categoryTitles.forEach((title, index) => {
+        gsap.set(title, { opacity: 0, y: 15 });
+        
+        gsap.to(title, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          delay: 1.2 + (index * 0.2),
+          onComplete: () => {
+            // Add class to trigger growing line animation
+            title.classList.add('animate-line');
+            title.classList.add('visible');
+          }
+        });
+      });
+
+      // Animate tech items after lines are fully extended
+      const techItems = techStack.querySelectorAll(".tech-item");
+      if (techItems.length > 0) {
+        gsap.set(techItems, {
+          opacity: 0,
+          scale: 0.8,
+          y: 10,
+          rotationX: 15
+        });
+
+        gsap.to(techItems, {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          rotationX: 0,
+          duration: 0.6,
+          stagger: 0.04,
+          ease: "back.out(1.7)",
+          delay: 2.0, // Reduced delay - wait less for category titles
+          onComplete: () => {
+            // Ensure tech items are visible after animation
+            gsap.set(techItems, {
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              rotationX: 0,
+              clearProps: "all"
+            });
+            // Add visible class to all tech items
+            techItems.forEach(item => item.classList.add('visible'));
+            
+
+          }
+        });
+
+        // Fallback: ensure tech items are visible after 4 seconds
+        setTimeout(() => {
+          gsap.set(techItems, {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            rotationX: 0,
+            clearProps: "all"
+          });
+        }, 4000);
       }
     }
   };
@@ -738,15 +932,71 @@ const WarpedSlider = () => {
             <p>Section. {slides[0].slideUrl}</p>
           </div>
         </div>
-        <div className="slide-tags">
-          <p>SOCIALS</p>
-          <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
-          <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
-          <p className="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>
-          <div className="spotify-container">
-            <p>LOADING...</p>
+                 <div className="slide-tags">
+           <p>SOCIALS</p>
+           <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
+           <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
+           <p className="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>
+           <div className="spotify-container">
+             <p>LOADING...</p>
+           </div>
+         </div>
+                   {/* Tech Stack for About Me slide */}
+          <div className="tech-stack">
+            <div className="tech-category">
+              <p className="tech-category-title">Languages</p>
+              <div className="tech-items">
+                {slides[0].techStack?.languages?.map(lang => (
+                  <span key={lang} className="tech-item">{lang}</span>
+                )) || (
+                  <>
+                    <span className="tech-item">Java</span>
+                    <span className="tech-item">Python</span>
+                    <span className="tech-item">C</span>
+                    <span className="tech-item">JavaScript</span>
+                    <span className="tech-item">HTML</span>
+                    <span className="tech-item">CSS</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="tech-category">
+              <p className="tech-category-title">Frameworks</p>
+              <div className="tech-items">
+                {slides[0].techStack?.frameworks?.map(framework => (
+                  <span key={framework} className="tech-item">{framework}</span>
+                )) || (
+                  <>
+                    <span className="tech-item">React.js</span>
+                    <span className="tech-item">Next.js</span>
+                    <span className="tech-item">pandas</span>
+                    <span className="tech-item">NumPy</span>
+                    <span className="tech-item">Matplotlib</span>
+                    <span className="tech-item">PyTorch</span>
+                    <span className="tech-item">GSAP</span>
+                    <span className="tech-item">Tailwind</span>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="tech-category">
+              <p className="tech-category-title">Platforms</p>
+              <div className="tech-items">
+                {slides[0].techStack?.platforms?.map(platform => (
+                  <span key={platform} className="tech-item">{platform}</span>
+                )) || (
+                  <>
+                    <span className="tech-item">Supabase</span>
+                    <span className="tech-item">PostgreSQL</span>
+                    <span className="tech-item">Firebase</span>
+                    <span className="tech-item">Git</span>
+                    <span className="tech-item">Vercel</span>
+                    <span className="tech-item">Docker</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
         <div className="slide-index-wrapper">
           <p>01</p>
           <p>/</p>

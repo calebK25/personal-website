@@ -513,6 +513,135 @@ canvas {
   margin-bottom: 0.5rem;
 }
 
+/* Tech Stack Styling */
+.tech-stack {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 280px;
+  z-index: 10;
+  opacity: 0;
+  margin-left: 300px; /* Move much further to the right of the pfp */
+  margin-top: -95px; /* Move up to center with the pfp */
+}
+
+.tech-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tech-category-title {
+  font-family: "DM Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #666;
+  margin: 0;
+  padding-bottom: 0.1rem;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.tech-category-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #000;
+  transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tech-category-title.animate-line::after {
+  width: 100%;
+}
+
+.tech-category-title.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.tech-stack .tech-item.visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.tech-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.tech-stack .tech-item {
+  font-family: "DM Mono", monospace !important;
+  font-size: 0.6rem !important;
+  font-weight: 400 !important;
+  color: #000 !important;
+  background: transparent !important;
+  border: 1px solid #000 !important;
+  padding: 0.1rem 0.3rem !important;
+  border-radius: 2px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  cursor: default !important;
+  display: inline-block !important;
+  opacity: 0 !important;
+  transform: translateY(20px) scale(0.8) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+
+
+.tech-stack .tech-item:hover {
+  background: #000 !important;
+  color: #fff !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .tech-stack {
+    margin-left: 250px;
+    margin-top: -40px;
+    max-width: 250px;
+  }
+  
+  .tech-items {
+    gap: 0.2rem;
+  }
+  
+  .tech-item {
+    font-size: 0.55rem;
+    padding: 0.08rem 0.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tech-stack {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin-left: 0;
+    margin-top: 2rem;
+    max-width: 100%;
+    opacity: 1;
+  }
+  
+  .tech-category {
+    margin-bottom: 0.5rem;
+  }
+}
+
 .social-link {
   text-decoration: underline;
   cursor: pointer;

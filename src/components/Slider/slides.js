@@ -2,33 +2,38 @@ const slides = [
   {
     slideTitle: "About Me",
     slideDescription:
-      "I'm a passionate designer and developer who loves creating digital experiences that blend creativity with functionality. I believe in the power of thoughtful design to connect people and ideas.",
-    slideUrl: "#",
-    slideTags: ["Design", "Development", "Creative", "Digital"],
-    slideImg: "/pfp/Yt556Yja_400x400.jpg"
+      "I am studying Computer Science at Princeton University with minors in Statistics and Machine Learning and Quantitative Economics. I am currently interested in long-horizon AI alignment—mitigating meltdowns, coherence loss, and hallucinations in LLM agents over extended deployments, along with machine-learning-driven computer vision, especially learning-based imaging and perception.",
+    slideUrl: "/about me",
+    slideImg: "/pfp/Yt556Yja_400x400.jpg",
+    slideTags: ["LinkedIn", "GitHub", "Email", "Spotify"],
+    techStack: {
+      languages: ["Java", "Python", "C", "JavaScript", "HTML", "CSS"],
+      frameworks: ["React.js", "Next.js", "pandas", "NumPy", "Matplotlib", "PyTorch", "GSAP", "Tailwind"],
+      platforms: ["Supabase", "PostgreSQL", "Firebase", "Git", "Vercel", "Docker"]
+    }
   },
   {
     slideTitle: "Experience",
     slideDescription:
-      "With years of experience in digital design and development, I've worked on projects ranging from brand identities to interactive web experiences. I specialize in creating user-centered solutions that make an impact.",
+      "I am currently researching about ways to mitigate hallucinations and goal drift in LLM agents. On the side, I am working on a centralized college counselor platform for high school students, alongside a quantitative firm startup.",
     slideUrl: "/experience",
-    slideTags: ["UX/UI", "Branding", "Web Development", "Strategy"],
+    slideTags: ["Artificial Intelligence & Machine Learning", "Natural Language Processing", "Computer Vision", "Human-Computer Interaction"],
     slideImg: null, // No image for white background
   },
   {
     slideTitle: "Projects",
     slideDescription:
-      "A collection of my work showcasing innovative design solutions and technical implementations. Each project represents a unique challenge and creative opportunity to push boundaries.",
+      "Currently I am working on Hikari, an end‑to‑end Retrieval‑Augmented Generation stack that turns scanned PDFs, slide decks, and other documents into a chat‑ready knowledge base—complete with click‑through page citations.",
     slideUrl: "/projects",
-    slideTags: ["Portfolio", "Case Studies", "Innovation", "Creative"],
+    slideTags: ["Retrieval-Augmented Generation", "ML/Natural Language Processing", "Object Detection", "Neural Networks"],
     slideImg: null, // No image for white background
   },
   {
     slideTitle: "Photography",
     slideDescription:
-      "Capturing moments through the lens, my photography work explores themes of light, composition, and storytelling. From street photography to conceptual art, each image tells a unique story.",
+      "During my free time, I enjoy taking photos of my experiences with friends and family, and capturing the simplistic beauty of the world around me.",
     slideUrl: "/photography",
-    slideTags: ["Visual Storytelling", "Composition", "Light", "Art"],
+    slideTags: ["Fujifilm XT-30", "XF 27mm f/2.8", " XF 18-55mm f/2.8-4"],
     slideImg: null, // No image for white background
   },
 ];
