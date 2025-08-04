@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Karim Saab Work Carousel | Codegrid",
-  description: "Karim Saab Work Carousel | Codegrid",
+  title: "caleb",
+  description: "portfolio",
 };
 
 export default function RootLayout({ children }) {
