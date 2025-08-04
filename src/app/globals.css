@@ -844,7 +844,7 @@ canvas {
 
 .threejs-gallery-container {
   position: absolute;
-  top: 50%;
+  top: 35%;
   left: 50%;
   width: 100%;
   z-index: 10;
