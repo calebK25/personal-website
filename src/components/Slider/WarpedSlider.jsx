@@ -8,6 +8,7 @@ import ThreeJSSlider from "./ThreeJSSlider.jsx";
 import ExperienceTimeline from "../ExperienceTimeline.jsx";
 import ProjectSlider from "./ProjectSlider.jsx";
 
+
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
 gsap.config({ nullTargetWarn: false });
@@ -99,16 +100,31 @@ const WarpedSlider = () => {
   };
 
   const updateSpotifyInfo = async (container) => {
-    const spotifyTitle = container.querySelector('.spotify-title');
-    if (!spotifyTitle) return;
+    const spotifyContainer = container.querySelector('.spotify-container');
+    if (!spotifyContainer) return;
 
     try {
-      // For now, we'll use a placeholder since we need Spotify API credentials
-      // In a real implementation, you'd need to set up Spotify API authentication
-      spotifyTitle.textContent = "Not Playing";
+      const response = await fetch('/api/spotify/now-playing');
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.error === 'Spotify access token not configured') {
+          spotifyContainer.innerHTML = '<p>NOT PLAYING</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>';
+          return;
+        }
+        throw new Error('Failed to fetch current track');
+      }
+      
+      const data = await response.json();
+      
+      if (data.isPlaying) {
+        spotifyContainer.innerHTML = `<p>${data.title} - ${data.artist}</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>`;
+      } else {
+        spotifyContainer.innerHTML = '<p>NOT PLAYING</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>';
+      }
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
-      spotifyTitle.textContent = "Not Playing";
+      spotifyContainer.innerHTML = '<p>NOT PLAYING</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>';
     }
   };
 
@@ -156,10 +172,10 @@ const WarpedSlider = () => {
       <div class="slide-tags">
         <p>${slideIndex === 1 ? 'SOCIALS' : 'TAGS'}</p>
         ${slideIndex === 1 ? 
-          '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
-          '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
-          '<p class="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>' +
-                      '<div class="spotify-container"><p class="spotify-title">Loading...</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div></div>'
+                     '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
+           '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
+           '<p class="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>' +
+                       '<div class="spotify-container"><p>LOADING...</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div></div>'
           : 
           slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
         }
@@ -633,6 +649,14 @@ const WarpedSlider = () => {
     updateSpotifyInfo(initialContent);
     }
 
+    // Set up periodic Spotify updates
+    const spotifyInterval = setInterval(() => {
+      const currentContent = document.querySelector(".slider-content");
+      if (currentContent) {
+        updateSpotifyInfo(currentContent);
+      }
+    }, 30000); // Update every 30 seconds
+
     // Setup initial slide animations
     setupInitialSlide();
     
@@ -681,6 +705,7 @@ const WarpedSlider = () => {
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
+      clearInterval(spotifyInterval);
     };
   }, [isClient]);
 
@@ -719,12 +744,7 @@ const WarpedSlider = () => {
           <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
           <p className="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>
           <div className="spotify-container">
-            <p className="spotify-title">Loading...</p>
-            <div className="spotify-visualizer">
-              <div className="visualizer-bar"></div>
-              <div className="visualizer-bar"></div>
-              <div className="visualizer-bar"></div>
-            </div>
+            <p>LOADING...</p>
           </div>
         </div>
         <div className="slide-index-wrapper">

@@ -529,8 +529,8 @@ canvas {
   gap: 0.5rem;
 }
 
-.slide-tags .spotify-container .spotify-title {
-  font-family: "DM Mono" !important;
+.spotify-container p {
+  font-family: "DM Mono", monospace !important;
   font-size: 0.7rem !important;
   font-weight: 500 !important;
   color: #000 !important;

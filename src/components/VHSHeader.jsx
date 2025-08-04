@@ -116,6 +116,8 @@ const VHSHeader = ({ onEject }) => {
       >
         {timeline} {timer}
       </div>
+
+
     </div>
   );
 };
