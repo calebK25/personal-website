@@ -13,31 +13,45 @@ export async function GET() {
       }, { status: 200 }); // Return 200 instead of 500 for missing config
     }
 
+    // Helper function to refresh access token
+    const refreshAccessToken = async () => {
+      try {
+        const response = await fetch('https://accounts.spotify.com/api/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Spotify token refresh failed:', response.status, errorData);
+          return null;
+        }
+
+        const data = await response.json();
+        return data.access_token;
+      } catch (error) {
+        console.error('Token refresh error:', error);
+        return null;
+      }
+    };
+
     // Get or refresh access token
     let accessToken = process.env.SPOTIFY_ACCESS_TOKEN;
     
     // If no access token, get one using refresh token
     if (!accessToken) {
-      try {
-        const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/spotify/refresh`, {
-          method: 'POST',
-        });
-        
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          accessToken = refreshData.access_token;
-        } else {
-          console.error('Failed to get initial access token');
-          return Response.json({ 
-            isPlaying: false, 
-            error: 'Failed to authenticate with Spotify' 
-          }, { status: 200 });
-        }
-      } catch (refreshError) {
-        console.error('Error getting initial access token:', refreshError);
+      accessToken = await refreshAccessToken();
+      if (!accessToken) {
         return Response.json({ 
           isPlaying: false, 
-          error: 'Authentication error' 
+          error: 'Failed to authenticate with Spotify' 
         }, { status: 200 });
       }
     }
@@ -53,36 +67,21 @@ export async function GET() {
 
     // If token is expired (401), try to refresh it
     if (response.status === 401) {
-      try {
-        const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/spotify/refresh`, {
-          method: 'POST',
-        });
-        
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          accessToken = refreshData.access_token;
-          
-          // Retry the request with new token
-          response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-        } else {
-          console.error('Token refresh failed');
-          return Response.json({ 
-            isPlaying: false, 
-            error: 'Authentication failed' 
-          }, { status: 200 });
-        }
-      } catch (refreshError) {
-        console.error('Token refresh error:', refreshError);
+      accessToken = await refreshAccessToken();
+      if (!accessToken) {
         return Response.json({ 
           isPlaying: false, 
-          error: 'Authentication error' 
+          error: 'Authentication failed' 
         }, { status: 200 });
       }
+      
+      // Retry the request with new token
+      response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
     }
 
     // Handle different response statuses
