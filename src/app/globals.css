@@ -867,7 +867,7 @@ canvas {
 
 .threejs-image-title {
   position: absolute;
-  bottom: -5%;
+  bottom: 10%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
