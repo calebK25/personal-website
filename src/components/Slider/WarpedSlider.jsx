@@ -865,10 +865,28 @@ const WarpedSlider = () => {
     const handleWheel = (e) => {
       const projectOverlayOpen = typeof document !== 'undefined' && document.body.classList.contains('gallery-active');
 
-      // If an overlay gallery is open anywhere, don't allow slide changes
-      if (projectOverlayOpen || galleryActiveRef.current) {
+      // If a full-screen overlay gallery (projects) is open, block slide changes
+      if (projectOverlayOpen) {
         e.preventDefault();
         return;
+      }
+
+      // While on Photography, only block when the pointer is over the gallery area
+      if (galleryActiveRef.current) {
+        const canvas = document.querySelector('.threejs-slider-container canvas');
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          const insetX = rect.width * 0.1;   // shrink capture area by 10% horizontally
+          const insetY = rect.height * 0.1;  // shrink capture area by 10% vertically
+          const x = e.clientX;
+          const y = e.clientY;
+          const inside = x >= rect.left + insetX && x <= rect.right - insetX && y >= rect.top + insetY && y <= rect.bottom - insetY;
+          if (inside) {
+            // Let the ThreeJS slider consume the event
+            e.preventDefault();
+            return;
+          }
+        }
       }
 
       // While on Projects, only block global slide changes when the pointer is over the projects area

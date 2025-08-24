@@ -108,6 +108,20 @@ const ThreeJSSlider = () => {
       const isGalleryActive = galleryContainer?.getAttribute('data-gallery-active') === 'true';
       if (!isGalleryVisible || !isGalleryActive) return;
 
+      // Only consume wheel when cursor is over the canvas within a tightened inset
+      const canvas = container.querySelector('canvas');
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const insetX = rect.width * 0.1;   // shrink capture area by 10% on left/right
+      const insetY = rect.height * 0.1;  // shrink capture area by 10% on top/bottom
+      const x = event.clientX;
+      const y = event.clientY;
+      const inside = x >= rect.left + insetX && x <= rect.right - insetX && y >= rect.top + insetY && y <= rect.bottom - insetY;
+      if (!inside) {
+        // Let parent slider handle scrolling
+        return;
+      }
+
       event.preventDefault();
       event.stopPropagation();
 
