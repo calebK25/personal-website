@@ -97,49 +97,21 @@ const ThreeJSSlider = () => {
     };
   }, [isVisible]);
 
-  // Handle wheel events at window level when gallery is visible
+  // Handle wheel events on the gallery container (reverted to local listener)
   useEffect(() => {
-    const handleWindowWheel = (event) => {
-      // Check if gallery is active by looking at the parent container
-      const galleryContainer = containerRef.current?.parentElement;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (event) => {
+      const galleryContainer = container.parentElement;
       const isGalleryVisible = galleryContainer?.classList.contains('gallery-visible');
       const isGalleryActive = galleryContainer?.getAttribute('data-gallery-active') === 'true';
-      
-      if (!galleryContainer || !isGalleryVisible || !isGalleryActive) {
-        return;
-      }
-      
-      // Check if the mouse is over the gallery area
-      const galleryRect = galleryContainer.getBoundingClientRect();
-      const mouseX = event.clientX;
-      const mouseY = event.clientY;
-      
-      // Account for the visual positioning of the gallery
-      // The gallery is positioned at top: -15% and uses transform: translate(-50%, -50%)
-      // So the visual center is at the center of the screen, but the DOM element is positioned higher
-      const visualTop = window.innerHeight * 0.5 - galleryRect.height * 0.5;
-      const visualBottom = window.innerHeight * 0.5 + galleryRect.height * 0.5;
-      
-      const isMouseOverGallery = (
-        mouseX >= galleryRect.left &&
-        mouseX <= galleryRect.right &&
-        mouseY >= visualTop &&
-        mouseY <= visualBottom
-      );
-      
-      // Only handle wheel events if mouse is over the gallery
-      if (!isMouseOverGallery) {
-        return;
-      }
-      
+      if (!isGalleryVisible || !isGalleryActive) return;
+
       event.preventDefault();
       event.stopPropagation();
-      event.stopImmediatePropagation();
 
-      // Show image title on first scroll
-      if (!showImageTitle) {
-        setShowImageTitle(true);
-      }
+      if (!showImageTitle) setShowImageTitle(true);
 
       isSnappingRef.current = false;
       isStableRef.current = false;
@@ -154,11 +126,9 @@ const ThreeJSSlider = () => {
       isMovingRef.current = true;
     };
 
-    // Always add the event listener, but only process events when gallery is active
-    window.addEventListener("wheel", handleWindowWheel, { passive: false, capture: true });
-
+    container.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
-      window.removeEventListener("wheel", handleWindowWheel, { capture: true });
+      container.removeEventListener('wheel', handleWheel);
     };
   }, [isVisible, showImageTitle]);
 
@@ -383,7 +353,7 @@ const ThreeJSSlider = () => {
     planeRef.current = new THREE.Mesh(geometry, materialRef.current);
     sceneRef.current.add(planeRef.current);
 
-    // Wheel events are now handled at window level in the useEffect above
+    // Wheel events are handled on the container element in the useEffect above
 
     // Start animation
     animate();
