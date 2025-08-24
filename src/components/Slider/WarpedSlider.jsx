@@ -27,6 +27,8 @@ const WarpedSlider = () => {
   // State refs
   const currentSlideIndexRef = useRef(0);
   const isTransitioningRef = useRef(false);
+  const galleryActiveRef = useRef(false);
+  const projectsActiveRef = useRef(false);
 
 
   const createCharacterElements = (element) => {
@@ -155,32 +157,8 @@ const WarpedSlider = () => {
       `;
     }
 
-    // Create tech stack HTML for About Me slide
+    // Tech stack removed from front page
     let techStackHTML = '';
-    if (slideIndex === 0 && slideData.techStack) {
-      techStackHTML = `
-        <div class="tech-stack">
-          <div class="tech-category">
-            <p class="tech-category-title">Languages</p>
-            <div class="tech-items">
-              ${slideData.techStack.languages.map(lang => `<span class="tech-item">${lang}</span>`).join('')}
-            </div>
-          </div>
-          <div class="tech-category">
-            <p class="tech-category-title">Frameworks</p>
-            <div class="tech-items">
-              ${slideData.techStack.frameworks.map(framework => `<span class="tech-item">${framework}</span>`).join('')}
-            </div>
-          </div>
-          <div class="tech-category">
-            <p class="tech-category-title">Platforms</p>
-            <div class="tech-items">
-              ${slideData.techStack.platforms.map(platform => `<span class="tech-item">${platform}</span>`).join('')}
-            </div>
-          </div>
-        </div>
-      `;
-    }
 
     content.innerHTML = `
       ${slideIndex === 0 ? `
@@ -201,7 +179,7 @@ const WarpedSlider = () => {
         ${slideIndex === 0 ? 
                      '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
            '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
-           '<p class="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>' +
+           '<p class="social-link" data-url="/resume">Resume</p>' +
                        '<div class="spotify-container"><p>LOADING...</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div></div>'
           : 
           slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
@@ -829,6 +807,10 @@ const WarpedSlider = () => {
     setIsClient(true);
   }, []);
 
+  // Keep refs in sync so global listeners read fresh values
+  useEffect(() => { galleryActiveRef.current = galleryActive; }, [galleryActive]);
+  useEffect(() => { projectsActiveRef.current = projectsActive; }, [projectsActive]);
+
   useEffect(() => {
     if (!isClient) return;
     
@@ -881,12 +863,31 @@ const WarpedSlider = () => {
 
     // Add event listeners
     const handleWheel = (e) => {
-      // If gallery or projects are active, completely ignore wheel events - let them handle their own
-      if (galleryActive || projectsActive) {
-        return; // Don't prevent default, don't stop propagation, just ignore
+      const projectOverlayOpen = typeof document !== 'undefined' && document.body.classList.contains('gallery-active');
+
+      // If an overlay gallery is open anywhere, don't allow slide changes
+      if (projectOverlayOpen || galleryActiveRef.current) {
+        e.preventDefault();
+        return;
       }
-      
-      // For all other cases, prevent default and handle slide changes
+
+      // While on Projects, only block global slide changes when the pointer is over the projects area
+      if (projectsActiveRef.current) {
+        const projectsContainer = document.querySelector('.projects-container.projects-visible');
+        if (projectsContainer) {
+          const rect = projectsContainer.getBoundingClientRect();
+          const x = e.clientX;
+          const y = e.clientY;
+          const isInside = x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+          if (isInside) {
+            // Let ProjectSlider handle scrolling within its area
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+
+      // Otherwise, handle slide change normally
       e.preventDefault();
       if (e.deltaY > 0) {
         handleSlideChange("next");
@@ -897,8 +898,17 @@ const WarpedSlider = () => {
 
     window.addEventListener("wheel", handleWheel, { passive: false });
 
+    // Allow ProjectSlider to request slide changes when at edges
+    const onProjectsEdgeScroll = (e) => {
+      const dir = e?.detail?.direction;
+      if (!dir) return;
+      handleSlideChange(dir === 'next' ? 'next' : 'prev');
+    };
+    window.addEventListener('projects-edge-scroll', onProjectsEdgeScroll);
+
     return () => {
       window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener('projects-edge-scroll', onProjectsEdgeScroll);
       clearInterval(spotifyInterval);
     };
   }, [isClient]);
@@ -932,71 +942,16 @@ const WarpedSlider = () => {
             <p>Section. {slides[0].slideUrl}</p>
           </div>
         </div>
-                 <div className="slide-tags">
+      <div className="slide-tags">
            <p>SOCIALS</p>
            <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
            <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
-           <p className="social-link" data-url="mailto:uongcaleb@gmail.com">Email</p>
+           <p className="social-link" data-url="/resume">Resume</p>
            <div className="spotify-container">
              <p>LOADING...</p>
            </div>
          </div>
-                   {/* Tech Stack for About Me slide */}
-          <div className="tech-stack">
-            <div className="tech-category">
-              <p className="tech-category-title">Languages</p>
-              <div className="tech-items">
-                {slides[0].techStack?.languages?.map(lang => (
-                  <span key={lang} className="tech-item">{lang}</span>
-                )) || (
-                  <>
-                    <span className="tech-item">Java</span>
-                    <span className="tech-item">Python</span>
-                    <span className="tech-item">C</span>
-                    <span className="tech-item">JavaScript</span>
-                    <span className="tech-item">HTML</span>
-                    <span className="tech-item">CSS</span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="tech-category">
-              <p className="tech-category-title">Frameworks</p>
-              <div className="tech-items">
-                {slides[0].techStack?.frameworks?.map(framework => (
-                  <span key={framework} className="tech-item">{framework}</span>
-                )) || (
-                  <>
-                    <span className="tech-item">React.js</span>
-                    <span className="tech-item">Next.js</span>
-                    <span className="tech-item">pandas</span>
-                    <span className="tech-item">NumPy</span>
-                    <span className="tech-item">Matplotlib</span>
-                    <span className="tech-item">PyTorch</span>
-                    <span className="tech-item">GSAP</span>
-                    <span className="tech-item">Tailwind</span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="tech-category">
-              <p className="tech-category-title">Platforms</p>
-              <div className="tech-items">
-                {slides[0].techStack?.platforms?.map(platform => (
-                  <span key={platform} className="tech-item">{platform}</span>
-                )) || (
-                  <>
-                    <span className="tech-item">Supabase</span>
-                    <span className="tech-item">PostgreSQL</span>
-                    <span className="tech-item">Firebase</span>
-                    <span className="tech-item">Git</span>
-                    <span className="tech-item">Vercel</span>
-                    <span className="tech-item">Docker</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+      
         <div className="slide-index-wrapper">
           <p>01</p>
           <p>/</p>

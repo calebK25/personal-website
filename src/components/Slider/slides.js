@@ -2,15 +2,10 @@ const slides = [
   {
     slideTitle: "About Me",
     slideDescription:
-      "I am studying Computer Science at Princeton University with minors in Statistics and Machine Learning and Quantitative Economics. I am currently interested in long-horizon AI alignment—mitigating meltdowns, coherence loss, and hallucinations in LLM agents over extended deployments, along with machine-learning-driven computer vision, especially learning-based imaging and perception.",
+      "I am a Computer Science student at Princeton University with minors in Statistics & Machine Learning and Quantitative Economics. I am currently interested in hallucination and reasoning in LLMs and VLMs, with an emphasis on how representational drift, memory consolidation, and semantic distortion arise in artificial systems. More specifically why models fabricate knowledge, how reasoning errors emerge, and what interventions, via training dynamics, curriculum design, or interpretability methods, can mitigate these failures.",
     slideUrl: "/about me",
     slideImg: "/pfp/Yt556Yja_400x400.jpg",
     slideTags: ["LinkedIn", "GitHub", "Email", "Spotify"],
-    techStack: {
-      languages: ["Java", "Python", "C", "JavaScript", "HTML", "CSS"],
-      frameworks: ["React.js", "Next.js", "pandas", "NumPy", "Matplotlib", "PyTorch", "GSAP", "Tailwind"],
-      platforms: ["Supabase", "PostgreSQL", "Firebase", "Git", "Vercel", "Docker"]
-    }
   },
   {
     slideTitle: "Experience",
@@ -23,17 +18,17 @@ const slides = [
   {
     slideTitle: "Projects",
     slideDescription:
-      "Currently I am working on Hikari, an end‑to‑end Retrieval‑Augmented Generation stack that turns scanned PDFs, slide decks, and other documents into a chat‑ready knowledge base—complete with click‑through page citations.",
+      "stuff I've built",
     slideUrl: "/projects",
-    slideTags: ["Retrieval-Augmented Generation", "ML/Natural Language Processing", "Object Detection", "Neural Networks"],
+    slideTags: ["Persona Vectors", "ML/Natural Language Processing", "Object Detection", "Neural Networks"],
     slideImg: null, // No image for white background
   },
   {
     slideTitle: "Photography",
     slideDescription:
-      "During my free time, I enjoy taking photos of my experiences with friends and family, and capturing the simplistic beauty of the world around me.",
+      "I occasionally shoot",
     slideUrl: "/photography",
-    slideTags: ["Fujifilm XT-30", "XF 27mm f/2.8", " XF 18-55mm f/2.8-4"],
+    slideTags: ["Fujifilm X100VI / XT-30", "XF 27mm f/2.8", " XF 18-55mm f/2.8-4"],
     slideImg: null, // No image for white background
   },
 ];

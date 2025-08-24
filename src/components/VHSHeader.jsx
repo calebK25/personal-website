@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PowerGlitch } from "powerglitch";
 
-const VHSHeader = ({ onEject }) => {
+const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
   const [timer, setTimer] = useState("0:00:00");
   const [spinner, setSpinner] = useState("|");
   const [timeline, setTimeline] = useState("●-------●");
@@ -84,7 +84,7 @@ const VHSHeader = ({ onEject }) => {
         pointerEvents: 'none',
       }}
     >
-      {/* Eject Button (Left) */}
+      {/* Eject (Left) */}
       <div
         style={{
           cursor: 'pointer',
@@ -103,7 +103,7 @@ const VHSHeader = ({ onEject }) => {
         {spinner} EJECT ⏏
       </div>
 
-      {/* Timer with Timeline (Right) */}
+      {/* CRT HUD (Right) */}
       <div
         style={{
           fontSize: '1rem',
@@ -112,9 +112,21 @@ const VHSHeader = ({ onEject }) => {
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           color: 'black',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          pointerEvents: 'auto',
+          cursor: onToggleRecord ? 'pointer' : 'default',
         }}
+        onClick={() => {
+          if (onToggleRecord) onToggleRecord();
+        }}
+        title={onToggleRecord ? 'Toggle REC' : undefined}
       >
-        {timeline} {timer}
+        <span style={{ opacity: 0.8 }}>{isRec ? 'REC' : 'PLAY'}</span>
+        <span style={{ opacity: 0.9, color: isRec ? 'rgba(200,0,0,0.9)' : 'rgba(0,0,0,0.6)' }}>•</span>
+        <span>{timer}</span>
+        <span style={{ opacity: 0.4, marginLeft: '0.5rem' }}>{timeline}</span>
       </div>
 
 

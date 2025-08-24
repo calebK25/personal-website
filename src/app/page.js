@@ -6,12 +6,16 @@ import VHSHeader from "@/components/VHSHeader";
 import WarpedSlider from "@/components/Slider/WarpedSlider";
 import EjectPage from "@/components/EjectPage";
 import { PowerGlitch } from "powerglitch";
+import CRTOverlay from "@/components/CRTOverlay";
 
 export default function Home() {
   const [showSlider, setShowSlider] = useState(false);
   const [showEjectPage, setShowEjectPage] = useState(false);
   const [landingKey, setLandingKey] = useState(0);
   const glitchRef = useRef(null);
+  const [powerClass, setPowerClass] = useState("power-transition-enter");
+  const [isRec, setIsRec] = useState(false);
+  
 
   const handleStart = () => {
     setShowSlider(true);
@@ -38,6 +42,8 @@ export default function Home() {
 
     // Set the eject page state after a short delay
     setTimeout(() => {
+      // Trigger power-off collapse just before switching
+      setPowerClass('power-transition-exit');
       setShowEjectPage(true);
     }, 500);
   };
@@ -50,6 +56,30 @@ export default function Home() {
   };
 
   // Handle body class when eject page is shown
+  useEffect(() => {
+    // Power-on transition on mount
+    setPowerClass("power-transition-enter");
+    const t = setTimeout(() => setPowerClass(""), 300);
+
+    // Easter-egg: Shift+E toggles stronger glitch briefly
+    const onKey = (e) => {
+      if (e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+        try {
+          if (glitchRef.current) {
+            const g = PowerGlitch.glitch(glitchRef.current, { shake: true, slice: { count: 8 }, glitchTimeSpan: { start: 0, end: 0.3 } });
+            setTimeout(() => g?.stopGlitch?.(), 600);
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('keydown', onKey);
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof document !== 'undefined' && document.body) {
       if (showEjectPage) {
@@ -67,12 +97,13 @@ export default function Home() {
   }, [showEjectPage]);
 
   return (
-    <div ref={glitchRef}>
+    <div ref={glitchRef} className={powerClass}>
+      <CRTOverlay intensity={0.15} showStatic={true} showScanlines={true} vignette={true} />
       {showEjectPage ? (
         <EjectPage onRewind={handleRewind} />
       ) : showSlider ? (
         <>
-          <VHSHeader onEject={handleEject} />
+          <VHSHeader onEject={handleEject} isRec={isRec} onToggleRecord={() => setIsRec((v) => !v)} />
           <WarpedSlider />
         </>
       ) : (

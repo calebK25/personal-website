@@ -176,6 +176,80 @@
   z-index: 10002;
 }
 
+/* CRT Overlay container + vignette */
+.crt-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.vignette-overlay {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+/* Disable CRT overlay on small screens */
+@media (max-width: 768px) {
+  .crt-overlay { display: none; }
+}
+
+/* Retro HUD */
+.retro-hud {
+  position: fixed;
+  font-family: 'VCR', monospace !important;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: rgba(0,0,0,0.6);
+  opacity: 0.9;
+  z-index: 10020;
+  user-select: none;
+}
+.retro-hud.hud-tl { top: 0.75rem; left: 0.75rem; }
+.retro-hud.hud-tr { top: 0.75rem; right: 0.75rem; }
+.retro-hud.hud-bl { bottom: 0.75rem; left: 0.75rem; }
+.retro-hud.hud-br { bottom: 0.75rem; right: 0.75rem; }
+
+.retro-hud .hud-mode { margin-right: 0.4rem; }
+.retro-hud .hud-mode.rec { color: rgba(200,0,0,0.8); }
+.retro-hud .hud-dot { margin-right: 0.4rem; color: rgba(200,0,0,0.8); }
+.retro-hud .hud-time { opacity: 0.8; }
+
+/* Power-on/off transition */
+.power-transition-enter {
+  animation: powerOn 260ms ease-out both;
+}
+.power-transition-exit {
+  animation: powerOff 260ms ease-in both;
+}
+
+@keyframes powerOn {
+  0% { transform: scaleY(0.02) scaleX(0); opacity: 0; filter: blur(2px); }
+  60% { transform: scaleY(0.02) scaleX(1); opacity: 1; }
+  100% { transform: scaleY(1) scaleX(1); opacity: 1; filter: blur(0); }
+}
+
+@keyframes powerOff {
+  0% { transform: scaleY(1) scaleX(1); opacity: 1; }
+  40% { transform: scaleY(0.02) scaleX(1); opacity: 1; }
+  100% { transform: scaleY(0.02) scaleX(0); opacity: 0; }
+}
+
+/* Subtle selection + caret */
+::selection { background: rgba(0, 0, 0, 0.1); color: #000; }
+input, textarea { caret-color: rgba(0,0,0,0.7); }
+
+/* Small jitter utility for images */
+.jitter:hover { animation: jitter 150ms ease-out; }
+@keyframes jitter { 0% { transform: translateY(0); } 40% { transform: translateY(1px); } 100% { transform: translateY(0); } }
+
+/* Slow marquee on hover for overflow text */
+.marquee-hover { display: inline-block; max-width: 100%; white-space: nowrap; overflow: hidden; }
+.marquee-hover:hover span { display: inline-block; animation: marquee 12s linear infinite; }
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
 .screen-distortion {
   position: absolute;
   top: 0;
@@ -402,11 +476,11 @@ canvas {
 }
 
 .slide-description p {
-  text-transform: uppercase;
+  text-transform: none;
   font-family: "DM Mono", monospace !important;
   font-size: 0.9rem;
   font-weight: 500;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   color: #000;
   margin: 0;
   line-height: 1.5;
@@ -440,6 +514,8 @@ canvas {
   margin: 0;
   line-height: 1.1;
 }
+
+ 
 
 .slide-title h1 .word {
   display: flex;
@@ -485,6 +561,16 @@ canvas {
   letter-spacing: -0.01rem;
   color: #000;
   margin: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.slide-index-wrapper .year-digit {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+  transform: none;
 }
 
 /* Tags section styling */
@@ -941,7 +1027,8 @@ canvas {
   text-align: center;
   max-width: 800px;
   width: 100%;
-  margin-top: -2rem; /* Move content up a bit */
+  margin-top: -6rem; /* Move content up even more */
+  padding-top: 2rem;
 }
 
 .project-title h2 {
@@ -949,14 +1036,48 @@ canvas {
   font-size: 2.5rem;
   font-weight: 600;
   color: #000;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.2;
+  position: relative;
+  display: inline-block;
+}
+
+.project-title h2::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background: #000;
+  transition: width 0.25s ease;
+}
+
+.project-title h2:hover::after {
+  width: 100%;
+}
+
+.project-blurb {
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.project-blurb p {
+  font-family: "DM Mono", monospace !important;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #666;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-style: italic;
 }
 
 .project-pronunciation {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   opacity: 0;
   transform: translateY(10px);
 }
@@ -973,7 +1094,7 @@ canvas {
 }
 
 .project-definition {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1rem;
   opacity: 0;
   transform: translateY(10px);
 }
@@ -991,11 +1112,31 @@ canvas {
   margin: 0 auto;
 }
 
+.project-summary {
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.project-summary p {
+  font-family: "DM Mono", monospace !important;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #666;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  max-width: 600px;
+  margin: 0 auto;
+  font-style: normal;
+}
+
 .project-tags {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
@@ -1014,6 +1155,7 @@ canvas {
   transform: scale(0.8);
   pointer-events: auto;
   cursor: default;
+  position: relative;
 }
 
 .tag:hover {
@@ -1022,8 +1164,24 @@ canvas {
   transform: scale(1.05);
 }
 
+/* Label-style notch (subtle) */
+.tag::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateY(-50%) rotate(45deg);
+  background: #fff;
+  border-right: 1px solid #000;
+  border-top: 1px solid #000;
+  opacity: 0.25;
+}
+.tag:hover::after { opacity: 0.5; }
+
 .project-technologies {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
@@ -1058,14 +1216,14 @@ canvas {
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
   opacity: 0;
-  transform: translateX(-30px) scale(0.8);
+  transform: translateY(10px) scale(0.98);
   border-bottom: 1px solid #ccc;
 }
 
 .tech-item:hover {
   color: #000;
   border-bottom-color: #000;
-  transform: translateX(0) scale(1);
+  transform: translateY(0) scale(1);
 }
 
 .project-year {
@@ -1086,15 +1244,13 @@ canvas {
 
 /* Scroll Indicator */
 .scroll-indicator {
-  position: absolute;
-  right: 50%;
-  top: 50%;
-  transform: translate(50%, -50%);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transform: translate(50%, -50%) translateY(20px);
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 1rem;
 }
 
 .scroll-dots {
@@ -1165,6 +1321,275 @@ canvas {
   backface-visibility: hidden;
 }
 
+/* Project Description Styles */
+.project-description {
+  margin-bottom: 1rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.project-description p {
+  font-family: "DM Mono", monospace !important;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #000;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Minimal Gallery Indicator */
+.project-gallery-indicator {
+  position: relative;
+  opacity: 0;
+  transition: all 0.4s ease;
+  transform: translateY(5px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.gallery-dots {
+  display: flex;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.gallery-dot {
+  width: 3px;
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.gallery-dot:nth-child(1) {
+  animation: galleryDotPulse 2s ease-in-out infinite;
+}
+
+.gallery-dot:nth-child(2) {
+  animation: galleryDotPulse 2s ease-in-out infinite 0.3s;
+}
+
+.gallery-dot:nth-child(3) {
+  animation: galleryDotPulse 2s ease-in-out infinite 0.6s;
+}
+
+@keyframes galleryDotPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.3);
+  }
+}
+
+.gallery-hint {
+  font-family: "DM Mono", monospace !important;
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.project-content:hover .project-gallery-indicator {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.project-content:hover .gallery-hint {
+  opacity: 1;
+}
+
+.project-content:hover .gallery-dot {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* Animated Project Gallery Styles */
+.project-gallery-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  animation: galleryFadeIn 0.3s ease-out;
+  pointer-events: auto !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hide slide content when gallery is active */
+.project-gallery-overlay ~ .slider-content,
+.project-gallery-overlay ~ .slider-content * {
+  display: none !important;
+}
+
+/* Alternative approach: hide slide content when gallery overlay exists */
+body:has(.project-gallery-overlay) .slider-content,
+body:has(.project-gallery-overlay) .slider-content * {
+  display: none !important;
+}
+
+/* Hide slide content when gallery overlay is present */
+.project-gallery-overlay ~ .slider .slider-content,
+.project-gallery-overlay ~ .slider .slider-content * {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Hide slide content when gallery is active */
+body.gallery-active .slider-content,
+body.gallery-active .slider-content * {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Ensure body and html don't interfere with overlay */
+body.gallery-active {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+body.gallery-active html {
+  overflow: hidden !important;
+}
+
+.project-gallery-expanding {
+  background: #000;
+  border-radius: 4px;
+  width: 200px;
+  height: 100px;
+  overflow: hidden;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  z-index: 10007;
+}
+
+.gallery-content {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+  box-sizing: border-box;
+  z-index: 10005;
+}
+
+.gallery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #333;
+  background: #000;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 10006;
+}
+
+.gallery-header h3 {
+  font-family: "DM Mono", monospace !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gallery-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.gallery-close:hover {
+  background: #333;
+  color: #fff;
+}
+
+.gallery-horizontal {
+  display: flex;
+  gap: 1rem;
+  padding: 2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.gallery-item {
+  flex-shrink: 0;
+  width: 300px;
+  height: 200px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #f0f0f0;
+  border: 2px solid #ccc;
+}
+
+.gallery-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@keyframes galleryFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .project-title h2 {
@@ -1173,6 +1598,10 @@ canvas {
   
   .project-definition p {
     font-size: 0.9rem;
+  }
+  
+  .project-description p {
+    font-size: 0.8rem;
   }
   
   .project-tags {
@@ -1192,6 +1621,23 @@ canvas {
     bottom: auto;
     margin-top: 2rem;
     text-align: center;
+  }
+
+  .gallery-horizontal {
+    padding: 1rem;
+  }
+
+  .gallery-item {
+    width: 250px;
+    height: 150px;
+  }
+
+  .gallery-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .gallery-header h3 {
+    font-size: 1rem;
   }
 }
 
