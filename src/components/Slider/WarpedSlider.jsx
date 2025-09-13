@@ -642,6 +642,13 @@ const WarpedSlider = () => {
 
   const setupInitialSlide = () => {
     const content = document.querySelector(".slider-content");
+    // Ensure paper texture is ready then reveal overlay
+    const img = new Image();
+    img.onload = () => {
+      document.documentElement.style.setProperty('--paperBg', `url('/White Concrete Background.jpg')`);
+      document.documentElement.classList.add('paper-loaded');
+    };
+    img.src = '/White Concrete Background.jpg';
     
     // First fade in the entire content
     gsap.to(content, {

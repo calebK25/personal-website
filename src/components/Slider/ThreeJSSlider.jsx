@@ -601,8 +601,9 @@ const ThreeJSSlider = () => {
         fetchAndParseEXIF(photographySlides[0].image).then((meta) => {
           setShotSettings((prev) => ({ ...prev, ...meta }));
         });
-        // Animate reels immediately on first load
+        // Animate reels immediately on first load and position palette
         requestAnimationFrame(() => {
+          positionPaletteRow();
           const palRow = containerRef.current?.querySelector('.palette-row');
           if (palRow) {
             const swatches = palRow.querySelectorAll('.palette-swatch .hex');

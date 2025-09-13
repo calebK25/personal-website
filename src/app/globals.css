@@ -633,7 +633,7 @@ a {
 
 /* Keep palette inside gallery width and right align */
 .threejs-slider-container { position: relative; }
-.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: flex-end; }
+.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: flex-end; visibility: hidden; }
 
 /* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }
@@ -807,12 +807,12 @@ a {
   inset: 0;
   pointer-events: none;
   z-index: 2; /* above slide background, below overlays (e.g., receipts) */
-  background-image: url('/White Concrete Background.jpg');
+  background-image: var(--paperBg, none);
   background-size: cover;
   background-position: center;
-  opacity: 0.14; /* lighter to reduce darken flash */
-  will-change: transform; /* hint for smoother rendering */
+  opacity: 0; /* show only after image fully loaded */
 }
+.paper-loaded .slider::after { opacity: 0.25; }
 
 .divider-thin { height: 1px; background: rgba(0,0,0,0.08); width: 100%; }
 
