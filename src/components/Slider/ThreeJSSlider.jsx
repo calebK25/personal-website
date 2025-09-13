@@ -263,6 +263,7 @@ const ThreeJSSlider = () => {
       paletteRow.style.top = `${top}px`;
       paletteRow.style.width = `${width}px`;
       paletteRow.style.right = 'auto';
+      paletteRow.style.visibility = 'visible';
     } catch {}
   };
 
