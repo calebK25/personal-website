@@ -29,61 +29,57 @@ const WarpedSlider = () => {
   const isTransitioningRef = useRef(false);
   const galleryActiveRef = useRef(false);
   const projectsActiveRef = useRef(false);
+  // Used earlier to sync animations; kept for potential future use
 
 
-  const createCharacterElements = (element) => {
-    if (element.querySelectorAll(".char").length > 0) return;
-
-    const words = element.textContent.split(" ");
-    element.innerHTML = "";
-
-    words.forEach((word, index) => {
-      const wordDiv = document.createElement("div");
-      wordDiv.className = "word";
-
-      [...word].forEach((char) => {
-        const charDiv = document.createElement("div");
-        charDiv.className = "char";
-        charDiv.innerHTML = `<span>${char}</span>`;
-        wordDiv.appendChild(charDiv);
+  const splitTitleToWords = (element) => {
+    if (!element) return;
+    try {
+      // Prefer the static helper if available
+      SplitText.create(element, {
+        type: "words",
+        wordsClass: "word",
+        mask: "words",
       });
-
-      element.appendChild(wordDiv);
-
-      if (index < words.length - 1) {
-        const spaceChar = document.createElement("div");
-        spaceChar.className = "word";
-        spaceChar.innerHTML = '<div class="char"><span> </span></div>';
-        element.appendChild(spaceChar);
-      }
-    });
+    } catch {
+      // Fallback to constructor API
+      try {
+        // eslint-disable-next-line no-new
+        new SplitText(element, { type: "words", wordsClass: "word" });
+      } catch {}
+    }
   };
 
   const createLineElements = (element) => {
-    new SplitText(element, { type: "lines", linesClass: "line" });
-    element.querySelectorAll(".line").forEach((line) => {
-      line.innerHTML = `<span>${line.textContent}</span>`;
-    });
+    if (!element) return;
+    try {
+      SplitText.create(element, {
+        type: "lines",
+        linesClass: "line",
+        mask: "lines",
+        reduceWhiteSpace: false,
+      });
+    } catch {
+      try {
+        // eslint-disable-next-line no-new
+        new SplitText(element, { type: "lines", linesClass: "line" });
+      } catch {}
+    }
   };
 
   const processTextElements = (container) => {
-    // Restore character splitting for title
+    // Split title into words (reference behavior)
     const title = container.querySelector(".slide-title h1");
-    if (title) createCharacterElements(title);
+    if (title) splitTitleToWords(title);
 
-    // Apply character splitting for full name
-    const fullName = container.querySelector(".full-name h1");
-    if (fullName) createCharacterElements(fullName);
+    // Split full name into words
+    const name = container.querySelector(".full-name h1");
+    if (name) splitTitleToWords(name);
 
-    // Apply SplitText to description paragraphs
-    container
-      .querySelectorAll(".slide-description p")
-      .forEach(createLineElements);
-
-    // Apply SplitText to tags
-    container
-      .querySelectorAll(".slide-tags p")
-      .forEach(createLineElements);
+    // Split description, tags, and index into lines
+    container.querySelectorAll(".slide-description p").forEach(createLineElements);
+    container.querySelectorAll(".slide-tags p").forEach(createLineElements);
+    container.querySelectorAll(".slide-index-wrapper p").forEach(createLineElements);
   };
 
 
@@ -101,9 +97,28 @@ const WarpedSlider = () => {
     });
   };
 
+  // Attach listeners to dynamically injected slide arrows
+  const setupSlideControls = (container) => {
+    const arrowButtons = container.querySelectorAll('.slide-arrow-btn');
+    arrowButtons.forEach((btn) => {
+      const dir = btn.getAttribute('data-dir');
+      if (!dir) return;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (dir === 'prev') {
+          handleSlideChange('prev');
+        } else if (dir === 'next') {
+          handleSlideChange('next');
+        }
+      });
+    });
+  };
+
   const updateSpotifyInfo = async (container) => {
     const spotifyContainer = container.querySelector('.spotify-container');
     if (!spotifyContainer) return;
+    const p = spotifyContainer.querySelector('.spotify-line');
+    if (!p) return;
 
     try {
       const response = await fetch('/api/spotify/now-playing');
@@ -111,22 +126,22 @@ const WarpedSlider = () => {
       if (!response.ok) {
         const errorData = await response.json();
         if (errorData.error === 'Spotify access token not configured') {
-          spotifyContainer.innerHTML = '<p>NOT PLAYING</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>';
+          // Leave current text/animation intact
           return;
         }
         throw new Error('Failed to fetch current track');
       }
       
       const data = await response.json();
-      
-      if (data.isPlaying) {
-        spotifyContainer.innerHTML = `<p>${data.title} - ${data.artist}</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>`;
-      } else {
-        spotifyContainer.innerHTML = '<p>NOT PLAYING</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>';
+      // Only update when actively playing to avoid breaking SplitText structure
+      if (data && data.isPlaying && data.title) {
+        const text = `${data.title} - ${data.artist}`;
+        p.textContent = text;
       }
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
-      spotifyContainer.innerHTML = '<p>NOT PLAYING</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div>';
+      // Keep existing content; don't disrupt animation
+      return;
     }
   };
 
@@ -134,6 +149,7 @@ const WarpedSlider = () => {
     const content = document.createElement("div");
     content.className = "slider-content";
     content.style.opacity = "0";
+    content.setAttribute('data-slide-index', String(slideIndex));
 
     // Add profile picture for About Me slide (slideIndex === 0)
     let profilePictureHTML = '';
@@ -167,30 +183,42 @@ const WarpedSlider = () => {
           ${profilePictureHTML}
         </div>
       ` : ''}
-      <div class="slide-title"><h1>${slideData.slideTitle}</h1></div>
-      <div class="slide-description">
-        <p>${slideData.slideDescription}</p>
-        <div class="slide-info">
-          <p>Section. ${slideData.slideUrl}</p>
+      
+      <div class="slide-header">
+        <div class="slide-title"><h1>${slideData.slideTitle}</h1></div>
+        <div class="slide-description">
+          <p>${slideData.slideDescription}</p>
         </div>
       </div>
-      <div class="slide-tags">
-        <p>${Number(slideIndex) === 0 ? 'SOCIALS' : Number(slideIndex) === 1 ? 'INTERESTS' : Number(slideIndex) === 2 ? 'LEARNING' : Number(slideIndex) === 3 ? 'GEAR' : 'TAGS'}</p>
-        ${slideIndex === 0 ? 
-                     '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
-           '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
-           '<p class="social-link" data-url="/resume">Resume</p>' +
-                       '<div class="spotify-container"><p>LOADING...</p><div class="spotify-visualizer"><div class="visualizer-bar"></div><div class="visualizer-bar"></div><div class="visualizer-bar"></div></div></div>'
+      <div class="slide-info">
+        <div class="slide-tags">
+          <p>${Number(slideIndex) === 0 ? 'SOCIALS' : Number(slideIndex) === 1 ? 'INTERESTS' : Number(slideIndex) === 2 ? 'LEARNING' : Number(slideIndex) === 3 ? 'GEAR' : 'TAGS'}</p>
+          ${slideIndex === 0 ? 
+            '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
+            '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
+            '<p class="social-link" data-url="/resume">Resume</p>' +
+            '<div class="spotify-container"><p class="spotify-line">NOT PLAYING</p></div>'
           : 
-          slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
-        }
+            slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
+          }
+        </div>
+        <div class="slide-index-group">
+          <button class="slide-arrow-btn" data-dir="prev" aria-label="Previous">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="slide-index-inner">
+            <div class="slide-index-wrapper">
+              <p>${(slideIndex + 1).toString().padStart(2, "0")}</p>
+              <p>/</p>
+              <p>${slides.length.toString().padStart(2, "0")}</p>
+            </div>
+          </div>
+          <button class="slide-arrow-btn" data-dir="next" aria-label="Next">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
       </div>
       ${techStackHTML}
-              <div class="slide-index-wrapper">
-          <p>${(slideIndex + 1).toString().padStart(2, "0")}</p>
-          <p>/</p>
-          <p>${slides.length.toString().padStart(2, "0")}</p>
-        </div>
     `;
 
     return content;
@@ -204,62 +232,71 @@ const WarpedSlider = () => {
 
     const timeline = gsap.timeline();
 
+    // Minimal page transition overlay
+    let overlay = document.querySelector('.page-transition-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'page-transition-overlay';
+      document.body.appendChild(overlay);
+    }
+    gsap.set(overlay, { opacity: 0 });
+    timeline.to(overlay, { opacity: 0.15, duration: 0.3, ease: 'power2.out' }, 0);
+
     // Animate counter exit
-    const currentCounter = currentContent.querySelector(".slide-index-wrapper");
-    if (currentCounter) {
-      timeline.to(currentCounter, {
-        y: "-20px",
+    const currentCounterLines = currentContent.querySelectorAll(".slide-index-wrapper .line");
+    if (currentCounterLines && currentCounterLines.length > 0) {
+      timeline.to(currentCounterLines, {
+        y: "-100%",
         opacity: 0,
-        duration: 0.3,
+        duration: 0.4,
+        stagger: 0.05,
         ease: "power2.inOut",
       }, 0);
     }
 
     // Animate title characters exit
-    const currentTitleChars = currentContent.querySelectorAll(".slide-title .char span");
-    if (currentTitleChars.length > 0) {
-      timeline.to(currentTitleChars, {
+    const currentTitleWords = currentContent.querySelectorAll(".slide-title .word");
+    if (currentTitleWords.length > 0) {
+      timeline.to(currentTitleWords, {
         y: "-100%",
-        duration: 0.6,
-        stagger: 0.025,
-        ease: "power2.inOut",
-      }, 0);
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.inOut",
+      }, 0.1);
     }
 
-    // Animate full name characters exit
-    const currentFullNameChars = currentContent.querySelectorAll(".full-name .char span");
-    if (currentFullNameChars.length > 0) {
-      timeline.to(currentFullNameChars, {
+    // Animate full name words exit
+    const currentFullNameWords = currentContent.querySelectorAll(".full-name .word");
+    if (currentFullNameWords.length > 0) {
+      timeline.to(currentFullNameWords, {
         y: "-100%",
         duration: 0.6,
-        stagger: 0.025,
+        stagger: 0.08,
         ease: "power2.inOut",
-      }, 0);
+      }, 0.1);
     }
 
     // Animate description lines exit
-    timeline.to(
-      [...currentContent.querySelectorAll(".slide-description .line span")],
-      {
+    const currentDescLines = currentContent.querySelectorAll(".slide-description .line");
+    if (currentDescLines.length > 0) {
+      timeline.to(currentDescLines, {
         y: "-100%",
-        duration: 0.6,
-        stagger: 0.025,
-        ease: "power2.inOut",
-      },
-      0.1
-    );
+        duration: 0.8,
+        stagger: 0.1,
+        ease: "power3.inOut",
+      }, 0.1);
+    }
 
     // Animate tags exit
-    timeline.to(
-      [...currentContent.querySelectorAll(".slide-tags .line span")],
-      {
+    const currentTagLines = currentContent.querySelectorAll(".slide-tags .line");
+    if (currentTagLines.length > 0) {
+      timeline.to(currentTagLines, {
         y: "-100%",
-        duration: 0.6,
-        stagger: 0.025,
-        ease: "power2.inOut",
-      },
-      0.1
-    );
+        duration: 0.8,
+        stagger: 0.08,
+        ease: "power3.inOut",
+      }, 0.1);
+    }
 
 
 
@@ -307,22 +344,51 @@ const WarpedSlider = () => {
         currentContent.remove();
         slider.appendChild(newContent);
 
-        gsap.set(newContent.querySelectorAll("span"), { y: "100%" });
+        // Inject receipt overlay for About slide if missing before splitting
+        if (nextIndex === 0 && newContent && !newContent.querySelector('.receipt-overlay')) {
+          const overlay = document.createElement('div');
+          overlay.className = 'receipt-overlay';
+          overlay.innerHTML = `
+            <div class="corner-logo"></div>
+            <div class="serial-code">ABT-01</div>
+            <div class="crop crop-tl"></div>
+            <div class="crop crop-tr"></div>
+            <div class="crop crop-bl"></div>
+            <div class="crop crop-br"></div>
+            <div class="watermark">${new Date().toISOString().slice(0,10)}-001</div>
+          `;
+          newContent.appendChild(overlay);
+        }
+
+        // Will prepare animated elements after splitting
 
         setTimeout(() => {
               processTextElements(newContent);
     setupSocialLinks(newContent);
-    updateSpotifyInfo(newContent);
 
-          const newTitleChars = newContent.querySelectorAll(".slide-title .char span");
-          const newDescLines = newContent.querySelectorAll(".slide-description .line span");
-          const newTagLines = newContent.querySelectorAll(".slide-tags .line span");
-          const newCounter = newContent.querySelector(".slide-index-wrapper");
+          const newTitleWords = newContent.querySelectorAll(".slide-title .word");
+          const newDescLines = newContent.querySelectorAll(".slide-description .line");
+          const newTagLines = newContent.querySelectorAll(".slide-tags .line");
+          const newCounterLines = newContent.querySelectorAll(".slide-index-wrapper .line");
+          const newFromToRows = newContent.querySelectorAll(".fromto .ft-row");
+          const newFromTo = newContent.querySelector('.fromto');
+
+          // Do not inject micro-meta on About to maintain fixed header spacing
+
+          // Prepare animated elements now that they exist
+          gsap.set([...newTitleWords, ...newDescLines, ...newTagLines, ...newCounterLines], { y: "100%" });
+          if (newFromToRows.length > 0) {
+            gsap.set(newFromToRows, { opacity: 0 });
+            if (newFromTo) {
+              gsap.set(newFromTo, { opacity: 0 });
+              newFromTo.style.setProperty('--lineScale', '0');
+            }
+          }
 
           // Only set animation for elements that exist and are valid
           const elementsToAnimate = [];
-          if (newTitleChars && newTitleChars.length > 0) {
-            newTitleChars.forEach(el => {
+          if (newTitleWords && newTitleWords.length > 0) {
+            newTitleWords.forEach(el => {
               if (el && el.nodeType === 1) elementsToAnimate.push(el);
             });
           }
@@ -342,13 +408,13 @@ const WarpedSlider = () => {
             gsap.set(elementsToAnimate, { y: "100%" });
           }
           gsap.set(newContent, { opacity: 1 });
+
+          // Ensure arrow controls are wired for the newly created slide
+          setupSlideControls(newContent);
           
           // Set counter initial state
-          if (newCounter) {
-            gsap.set(newCounter, {
-              y: "20px",
-              opacity: 0,
-            });
+          if (newCounterLines && newCounterLines.length > 0) {
+            gsap.set(newCounterLines, { y: "100%", opacity: 1 });
           }
 
           // Set initial state for profile picture and full name container
@@ -366,12 +432,10 @@ const WarpedSlider = () => {
               });
             }
             
-            // Set initial state for full name characters
-            const fullNameChars = profileStatsContainer.querySelectorAll(".full-name .char span");
-            if (fullNameChars.length > 0) {
-              gsap.set(fullNameChars, {
-                y: "100%",
-              });
+            // Set initial state for full name words
+            const fullNameWordsInit = profileStatsContainer.querySelectorAll(".full-name .word");
+            if (fullNameWordsInit && fullNameWordsInit.length > 0) {
+              gsap.set(fullNameWordsInit, { y: "100%" });
             }
           }
 
@@ -379,33 +443,37 @@ const WarpedSlider = () => {
               onComplete: () => {
                 isTransitioningRef.current = false;
                 currentSlideIndexRef.current = nextIndex;
+                // Fade overlay out at end
+                gsap.to(overlay, { opacity: 0, duration: 0.45, ease: 'power2.inOut' });
+                // After animation completes, safely update spotify text without breaking animation structure
+                updateSpotifyInfo(newContent);
               },
           });
 
-          // Animate title characters
-          if (newTitleChars && newTitleChars.length > 0) {
-            const validTitleChars = Array.from(newTitleChars).filter(el => el && el.nodeType === 1);
-            if (validTitleChars.length > 0) {
-              timeline.to(validTitleChars, {
-              y: "0%",
-              duration: 0.5,
-              stagger: 0.025,
-              ease: "power2.inOut",
-              });
+          // Animate title words (reference timing)
+          if (newTitleWords && newTitleWords.length > 0) {
+            const validTitleWords = Array.from(newTitleWords).filter(el => el && el.nodeType === 1);
+            if (validTitleWords.length > 0) {
+              timeline.to(validTitleWords, {
+                y: "0%",
+                duration: 1.1,
+                ease: "power3.out",
+                stagger: 0.1,
+              }, 0.75);
             }
           }
 
-          // Animate full name characters
-          const newFullNameChars = newContent.querySelectorAll(".full-name .char span");
-          if (newFullNameChars && newFullNameChars.length > 0) {
-            const validFullNameChars = Array.from(newFullNameChars).filter(el => el && el.nodeType === 1);
-            if (validFullNameChars.length > 0) {
-              timeline.to(validFullNameChars, {
+          // Animate full name words
+          const newFullNameWords = newContent.querySelectorAll(".full-name .word");
+          if (newFullNameWords && newFullNameWords.length > 0) {
+            const validFullNameWords = Array.from(newFullNameWords).filter(el => el && el.nodeType === 1);
+            if (validFullNameWords.length > 0) {
+              timeline.to(validFullNameWords, {
                 y: "0%",
-                duration: 0.5,
-                stagger: 0.025,
-                ease: "power2.inOut",
-              }, 0.2);
+                duration: 1,
+                ease: "power4.out",
+                stagger: 0.08,
+              }, 0.8);
             }
           }
 
@@ -413,11 +481,12 @@ const WarpedSlider = () => {
           if (newDescLines && newDescLines.length > 0) {
             const validDescLines = Array.from(newDescLines).filter(el => el && el.nodeType === 1);
             if (validDescLines.length > 0) {
-              timeline.to(
-                validDescLines,
-              { y: "0%", duration: 0.5, stagger: 0.1, ease: "power2.inOut" },
-              0.3
-              );
+              timeline.to(validDescLines, {
+                y: "0%",
+                duration: 1.1,
+                ease: "power3.out",
+                stagger: 0.1,
+              }, "<");
             }
           }
 
@@ -425,28 +494,41 @@ const WarpedSlider = () => {
           if (newTagLines && newTagLines.length > 0) {
             const validTagLines = Array.from(newTagLines).filter(el => el && el.nodeType === 1);
             if (validTagLines.length > 0) {
-              timeline.to(
-                validTagLines,
-              { y: "0%", duration: 0.5, stagger: 0.05, ease: "power2.inOut" },
-              0.4
-              );
+              timeline.to(validTagLines, {
+                y: "0%",
+                duration: 1.1,
+                ease: "power3.out",
+                stagger: 0.1,
+              }, "-=0.75");
             }
           }
+
+          // spotify animates as part of tag lines (no special casing)
 
 
 
           // Animate counter
-          if (newCounter) {
-            timeline.to(
-              newCounter,
-              {
-                y: "0px",
-                opacity: 1,
-                duration: 0.4,
-                ease: "power2.out",
-              },
-              0.5
-            );
+          if (newCounterLines && newCounterLines.length > 0) {
+            timeline.to(newCounterLines, {
+              y: "0%",
+              duration: 1,
+              ease: "power4.out",
+              stagger: 0.1,
+            }, "<");
+          }
+
+          // Animate From/To, only on About slide
+          if (nextIndex === 0 && newFromToRows.length > 0) {
+            if (newFromTo) {
+              timeline.to(newFromTo, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.9);
+              timeline.call(() => newFromTo.style.setProperty('--lineScale', '1'), null, 0.95);
+            }
+            timeline.to(newFromToRows, {
+              opacity: 1,
+              duration: 0.6,
+              stagger: 0.1,
+              ease: "power2.out",
+            }, 0.95);
           }
 
           // Animate profile stats container with full name
@@ -568,55 +650,82 @@ const WarpedSlider = () => {
       ease: "power2.out"
     });
 
-    const titleChars = content.querySelectorAll(".slide-title .char span");
-    const descLines = content.querySelectorAll(".slide-description .line span");
-    const tagLines = content.querySelectorAll(".slide-tags .line span");
-    const fullNameChars = content.querySelectorAll(".full-name .char span");
-    const counter = content.querySelector(".slide-index-wrapper");
+    // Add receipt overlay elements once on initial slide
+    if (content && !content.querySelector('.receipt-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'receipt-overlay';
+      overlay.innerHTML = `
+        <div class="corner-logo"></div>
+        <div class="serial-code">ABT-01</div>
+        <div class="crop crop-tl"></div>
+        <div class="crop crop-tr"></div>
+        <div class="crop crop-bl"></div>
+        <div class="crop crop-br"></div>
+        <div class="watermark">${new Date().toISOString().slice(0,10)}-001</div>
+      `;
+      content.appendChild(overlay);
+    }
 
-    // Animate title characters
-    if (titleChars.length > 0) {
-    gsap.fromTo(
-      titleChars,
-      { y: "100%" },
-      { y: "0%", duration: 0.8, stagger: 0.025, ease: "power2.out" }
-    );
+    // Select split elements produced earlier in processTextElements
+    const titleWords = content.querySelectorAll(".slide-title .word");
+    const descLines = content.querySelectorAll(".slide-description .line");
+    const tagLines = content.querySelectorAll(".slide-tags .line");
+    const counterLines = content.querySelectorAll(".slide-index-wrapper .line");
+    const fullNameWords = content.querySelectorAll(".full-name .word");
+    const fromToRows = content.querySelectorAll(".fromto .ft-row");
+    const fromTo = content.querySelector('.fromto');
+
+    // Set initial state
+    gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWords], { y: "100%" });
+    if (fromToRows.length > 0) {
+      gsap.set(fromToRows, { opacity: 0 });
+      if (fromTo) {
+        gsap.set(fromTo, { opacity: 0 });
+        fromTo.style.setProperty('--lineScale', '0');
+      }
+    }
+
+    // Animate title words
+    if (titleWords.length > 0) {
+      gsap.to(titleWords, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
+      // reveal underline after text comes in (only for opted-in titles)
+      const h1 = content.querySelector('.slide-title h1.underline');
+      if (h1) setTimeout(() => h1.classList.add('title-show'), 900);
     }
 
     // Animate description lines
     if (descLines.length > 0) {
-    gsap.fromTo(
-      descLines,
-      { y: "100%" },
-      { y: "0%", duration: 0.8, stagger: 0.025, ease: "power2.out", delay: 0.2 }
-    );
+      gsap.to(descLines, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
     }
+
+    // Remove micro-meta on initial slide to keep hero spacing consistent
+    const existingMeta = content.querySelector('.micro-meta');
+    if (existingMeta) existingMeta.remove();
 
     // Animate tag lines
     if (tagLines.length > 0) {
-    gsap.fromTo(
-      tagLines,
-      { y: "100%" },
-      { y: "0%", duration: 0.8, stagger: 0.025, ease: "power2.out", delay: 0.4 }
-    );
+      gsap.to(tagLines, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
     }
 
-        // Animate full name characters
-    if (fullNameChars.length > 0) {
-    gsap.fromTo(
-      fullNameChars,
-      { y: "100%" },
-      { y: "0%", duration: 0.8, stagger: 0.025, ease: "power2.out", delay: 0.3 }
-    );
+    // spotify animates via tagLines
+
+    // Animate counter lines
+    if (counterLines.length > 0) {
+      gsap.to(counterLines, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
     }
-    
-    // Animate counter on initial load
-    if (counter) {
-      gsap.fromTo(
-        counter,
-        { y: "20px", opacity: 0 },
-        { y: "0px", opacity: 1, duration: 0.6, ease: "power2.out", delay: 0.8 }
-      );
+
+    // Animate full name words at same time as title/tags
+    if (fullNameWords.length > 0) {
+      gsap.to(fullNameWords, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.08, delay: 0.75 });
+    }
+
+    // Animate From/To rows after tags
+    if (fromToRows.length > 0) {
+      if (fromTo) {
+        gsap.to(fromTo, { opacity: 1, duration: 0.4, ease: 'power2.out', delay: 0.9 });
+        setTimeout(() => fromTo.style.setProperty('--lineScale', '1'), 950);
+      }
+      gsap.to(fromToRows, { opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out", delay: 0.95 });
     }
 
     // Animate profile picture and full name container on initial load
@@ -770,7 +879,7 @@ const WarpedSlider = () => {
       setTimeout(() => {
         setShowTimeline(true);
         setTimelineExiting(false);
-      }, 600);
+      }, 1600);
     } else if (previousIndex === 1) {
       // If leaving experience slide, animate out smoothly
       setTimelineExiting(true);
@@ -820,15 +929,23 @@ const WarpedSlider = () => {
     // Process initial slide content first
     const initialContent = slider.querySelector(".slider-content");
     if (initialContent) {
-          processTextElements(initialContent);
-    setupSocialLinks(initialContent);
-    updateSpotifyInfo(initialContent);
+      processTextElements(initialContent);
+      setupSocialLinks(initialContent);
+      setupSlideControls(initialContent);
+      // Prepare full-name words
+      const nameWords = initialContent.querySelectorAll('.full-name .word');
+      if (nameWords && nameWords.length > 0) { gsap.set(nameWords, { y: '100%' }); }
+      // Fetch and animate when data arrives so it doesn't remain hidden if late
+      // Keep timing with other tags by letting SplitText on LOADING... handle entry.
+      // Update the text after animation completes to avoid early entrance.
+      setTimeout(() => updateSpotifyInfo(initialContent), 1100);
     }
 
     // Set up periodic Spotify updates
     const spotifyInterval = setInterval(() => {
       const currentContent = document.querySelector(".slider-content");
       if (currentContent) {
+        // Update the text only; no re-animation to avoid jumping ahead
         updateSpotifyInfo(currentContent);
       }
     }, 30000); // Update every 30 seconds
@@ -850,7 +967,7 @@ const WarpedSlider = () => {
     if (currentSlideIndex === 1) {
       setTimeout(() => {
         setShowTimeline(true);
-      }, 500);
+      }, 1600); // wait for experience title/description to animate first
     }
 
     // Handle initial projects state
@@ -933,7 +1050,7 @@ const WarpedSlider = () => {
 
   return (
     <div ref={sliderRef} className="slider">
-      <div className="slider-content" style={{ opacity: 0 }}>
+      <div className="slider-content" data-slide-index="0" style={{ opacity: 0 }}>
         {/* Full Name and Profile Picture for About Me slide */}
         {slides[0].slideImg && (
           <div className="profile-stats-container">
@@ -949,31 +1066,40 @@ const WarpedSlider = () => {
             </div>
           </div>
         )}
-        
-        <div className="slide-title">
-          <h1>{slides[0].slideTitle}</h1>
-        </div>
-        <div className="slide-description">
-          <p>{slides[0].slideDescription}</p>
-          
-          <div className="slide-info">
-            <p>Section. {slides[0].slideUrl}</p>
+        {/* From/To removed per request */}
+        <div className="slide-header">
+          <div className="slide-title">
+            <h1>{slides[0].slideTitle}</h1>
+          </div>
+          <div className="slide-description">
+            <p>{slides[0].slideDescription}</p>
           </div>
         </div>
-      <div className="slide-tags">
-           <p>SOCIALS</p>
-           <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
-           <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
-           <p className="social-link" data-url="/resume">Resume</p>
-           <div className="spotify-container">
-             <p>LOADING...</p>
-           </div>
-         </div>
-      
-        <div className="slide-index-wrapper">
-          <p>01</p>
-          <p>/</p>
-          <p>{slides.length.toString().padStart(2, "0")}</p>
+        <div className="slide-info">
+          <div className="slide-tags">
+            <p>SOCIALS</p>
+            <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
+            <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
+            <p className="social-link" data-url="/resume">Resume</p>
+            <div className="spotify-container">
+              <p className="spotify-line">NOT PLAYING</p>
+            </div>
+          </div>
+          <div className="slide-index-group">
+            <button className="slide-arrow-btn" aria-label="Previous" onClick={() => handleSlideChange('prev')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 6l-6 6 6 6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <div className="slide-index-inner">
+              <div className="slide-index-wrapper">
+                <p>01</p>
+                <p>/</p>
+                <p>{slides.length.toString().padStart(2, "0")}</p>
+              </div>
+            </div>
+            <button className="slide-arrow-btn" aria-label="Next" onClick={() => handleSlideChange('next')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 6l6 6-6 6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+          </div>
         </div>
       </div>
       

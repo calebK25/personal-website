@@ -10,57 +10,132 @@ const ProjectSlider = () => {
   gsap.registerPlugin(SplitText, ScrambleTextPlugin);
   
   const containerRef = useRef(null);
+  const contentRef = useRef(null);
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [galleryImages, setGalleryImages] = useState([]);
   const scrollTimeoutRef = useRef(null);
   const setWidthRef = useRef(0);
+  const didInitLeadersRef = useRef(false);
 
-     // Project data
-   const projects = [
-      {
-        title: "volley",
-        pronunciation: "/ˈvälē/",
-        description: "Computer vision system for tennis analysis using YOLO to detect players and track the ball, rendering a 2D overlay of plays and estimating ball speed across rallies.",
-        tags: ["Computer Vision", "YOLO", "Object Tracking", "Ball Speed", "2D Overlay"],
-        technologies: ["Python", "Jupyter", "OpenCV", "YOLO", "NumPy"],
-        year: "2024",
-        liveUrl: "https://github.com/calebK25/volley",
-        images: [
-          "/projects/volley/output_video.mp4",
-          "/projects/volley/chat.png",
-          "/projects/volley/projects.png",
-          "/projects/volley/files.png",
-          "/projects/volley/analytics.png"
-        ]
+  const applyLeaderMasks = (rootEl) => {
+    if (!rootEl) return;
+    const rows = rootEl.querySelectorAll('.with-leaders');
+    rows.forEach((row) => {
+      try {
+        const key = row.querySelector('.kv-key');
+        const value = row.querySelector('.kv-value');
+        if (!key || !value) return;
+        const rect = row.getBoundingClientRect();
+        const keyRect = key.getBoundingClientRect();
+        const valRect = value.getBoundingClientRect();
+        const width = rect.width || 1;
+        const hole1Start = ((keyRect.left - rect.left) / width) * 100;
+        const hole1End = ((keyRect.right - rect.left) / width) * 100;
+        const hole2Start = ((valRect.left - rect.left) / width) * 100;
+        const hole2End = ((valRect.right - rect.left) / width) * 100;
+        row.style.setProperty('--hole1-start', `${hole1Start}%`);
+        row.style.setProperty('--hole1-end', `${hole1End}%`);
+        row.style.setProperty('--hole2-start', `${hole2Start}%`);
+        row.style.setProperty('--hole2-end', `${hole2End}%`);
+      } catch {}
+    });
+  };
+
+  const triggerLeaderRows = (rootEl) => {
+    if (!rootEl) return;
+    const metaRows = rootEl.querySelectorAll('.with-leaders');
+    metaRows.forEach((row) => {
+      applyLeaderMasks(rootEl);
+      row.classList.remove('animate', 'show-key', 'show-value');
+      // eslint-disable-next-line no-unused-expressions
+      (row).offsetWidth;
+      // reveal row only when animation begins to avoid flicker
+      row.style.visibility = 'visible';
+      row.classList.add('animate');
+      setTimeout(() => row.classList.add('show-key'), 260);
+      setTimeout(() => row.classList.add('show-value'), 520);
+    });
+  };
+
+  // Helper: fade project content out, then switch, then fade in
+  const transitionToProject = (nextIndex) => {
+    const el = contentRef.current;
+    if (!el) {
+      setCurrentProjectIndex(nextIndex);
+      return;
+    }
+    gsap.to(el, {
+      opacity: 0,
+      duration: 0.2,
+      ease: "power2.out",
+      onComplete: () => {
+        // prepare rows hidden to avoid mid-transition flash
+        const rowsBefore = el.querySelectorAll('.with-leaders');
+        rowsBefore.forEach((row) => {
+          row.classList.remove('animate', 'show-key', 'show-value');
+          row.style.visibility = 'hidden';
+        });
+        setCurrentProjectIndex(nextIndex);
+        requestAnimationFrame(() => {
+          gsap.fromTo(el, { opacity: 0 }, {
+            opacity: 1,
+            duration: 0.25,
+            ease: "power2.out",
+            onComplete: () => {
+              triggerLeaderRows(el);
+            }
+          });
+        });
       },
-      {
-        title: "refrain",
-        pronunciation: "/rəˈfrān/",
-        description: "Music visualizer that uses Three.js to render a similarity graph of your listening history and K-means clustering to auto-generate playlists tailored to your taste.",
-        tags: ["Music Visualization", "Similarity Graphs", "K-means", "Creative Tools"],
-        technologies: ["Python", "PyTorch", "React", "Next.js", "Three.js"],
-        year: "2023",
-        liveUrl: "https://github.com/calebK25/refrain",
-        images: [
-          "/projects/refrain/interface.png",
-          "/projects/refrain/generation.png",
-          "/projects/refrain/playlist.png",
-          "/projects/refrain/visualizer.png"
-        ]
-      },
-      {
-        title: "distill",
-        pronunciation: "/dɪˈstɪl/",
-        description: "Context Compressor: production-grade context compression for intelligent document analysis and QA. Achieves 90–95% token reduction with CDC/SDM, multimodal extraction, auto-router, and a web API.",
-        tags: ["Context Compression", "PDF QA", "Multimodal", "LLM Integration"],
-        technologies: ["Python", "FastAPI", "OpenRouter", "BM25", "MMR"],
-        year: "2025",
-        liveUrl: "https://github.com/calebK25/distill",
-        images: []
-      }
-   ];
+    });
+  };
+
+  // Project data
+  const projects = [
+    {
+      title: "volley",
+      pronunciation: "/ˈvälē/",
+      description: "Computer vision system for tennis analysis using YOLO to detect players and track the ball, rendering a 2D overlay of plays and estimating ball speed across rallies.",
+      tags: ["Computer Vision", "YOLO", "Object Tracking", "Ball Speed", "2D Overlay"],
+      technologies: ["Python", "Jupyter", "OpenCV", "YOLO", "NumPy"],
+      year: "2024",
+      liveUrl: "https://github.com/calebK25/volley",
+      images: [
+        "/projects/volley/output_video.mp4",
+        "/projects/volley/chat.png",
+        "/projects/volley/projects.png",
+        "/projects/volley/files.png",
+        "/projects/volley/analytics.png"
+      ]
+    },
+    {
+      title: "refrain",
+      pronunciation: "/rəˈfrān/",
+      description: "Music visualizer that uses Three.js to render a similarity graph of your listening history and K-means clustering to auto-generate playlists tailored to your taste.",
+      tags: ["Music Visualization", "Similarity Graphs", "K-means", "Creative Tools"],
+      technologies: ["Python", "PyTorch", "React", "Next.js", "Three.js"],
+      year: "2023",
+      liveUrl: "https://github.com/calebK25/refrain",
+      images: [
+        "/projects/refrain/interface.png",
+        "/projects/refrain/generation.png",
+        "/projects/refrain/playlist.png",
+        "/projects/refrain/visualizer.png"
+      ]
+    },
+    {
+      title: "distill",
+      pronunciation: "/dɪˈstɪl/",
+      description: "Context Compressor: production-grade context compression for intelligent document analysis and QA. Achieves 90–95% token reduction with CDC/SDM, multimodal extraction, auto-router, and a web API.",
+      tags: ["Context Compression", "PDF QA", "Multimodal", "LLM Integration"],
+      technologies: ["Python", "FastAPI", "OpenRouter", "BM25", "MMR"],
+      year: "2025",
+      liveUrl: "https://github.com/calebK25/distill",
+      images: []
+    }
+  ];
 
   // Watch for visibility changes from parent
   useEffect(() => {
@@ -93,6 +168,24 @@ const ProjectSlider = () => {
     return () => {
       observer.disconnect();
     };
+  }, [isVisible]);
+
+  // Run leader animation once on initial visibility
+  useEffect(() => {
+    if (isVisible && !didInitLeadersRef.current && contentRef.current) {
+      didInitLeadersRef.current = true;
+      const el = contentRef.current;
+      // hide rows to avoid flicker before first animation
+      const initialRows = el.querySelectorAll('.with-leaders');
+      initialRows.forEach((row) => {
+        row.classList.remove('animate', 'show-key', 'show-value');
+        row.style.visibility = 'hidden';
+      });
+      // compute mask cut-outs once before first animation
+      applyLeaderMasks(el);
+      // slight delay so title appears first
+      setTimeout(() => triggerLeaderRows(el), 250);
+    }
   }, [isVisible]);
 
   // Handle wheel events for project navigation (disabled when gallery overlay is open)
@@ -162,9 +255,9 @@ const ProjectSlider = () => {
         
         // Navigate projects
         if (event.deltaY > 0) {
-          setCurrentProjectIndex(prev => (prev + 1) % projects.length);
+          transitionToProject((currentProjectIndex + 1) % projects.length);
         } else if (event.deltaY < 0) {
-          setCurrentProjectIndex(prev => prev === 0 ? projects.length - 1 : prev - 1);
+          transitionToProject(currentProjectIndex === 0 ? projects.length - 1 : currentProjectIndex - 1);
         }
         
         // Much shorter delay for instant feel
@@ -182,7 +275,7 @@ const ProjectSlider = () => {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [isVisible, showGallery]);
+  }, [isVisible, showGallery, currentProjectIndex]);
 
   // Handle gallery open/close with animation
   const handleProjectClick = () => {
@@ -483,6 +576,11 @@ const ProjectSlider = () => {
 
   // Animate project content with smoother transitions
   useEffect(() => {
+    const onResize = () => {
+      if (!contentRef.current) return;
+      applyLeaderMasks(contentRef.current);
+    };
+    window.addEventListener('resize', onResize);
     if (!isVisible) return;
 
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
@@ -490,47 +588,44 @@ const ProjectSlider = () => {
     // Reset all elements and immediately hide them
     gsap.set(containerRef.current, { clearProps: "all" });
     
-         // Immediately hide all elements to prevent overlap
-     const allElements = containerRef.current?.querySelectorAll('.project-pronunciation, .project-tags .tag, .project-technologies h3, .project-technologies .tech-item, .project-year span');
+    // Immediately hide all elements to prevent overlap
+    const allElements = containerRef.current?.querySelectorAll('.project-pronunciation, .project-tags .tag, .project-technologies h3, .project-technologies .tech-item');
     if (allElements) {
       gsap.set(allElements, { opacity: 0, y: 10, scale: 0.98 });
     }
     
-         // Animate title with ScrambleText (keep as is)
-     const titleElement = containerRef.current?.querySelector('.project-title h2');
-     if (titleElement) {
-       // Clear any previous scramble text elements
-       const existingScramble = titleElement.querySelectorAll('.scrambled-text');
-       existingScramble.forEach(el => el.remove());
-       
-       tl.set(titleElement, { opacity: 0 })
-         .to(titleElement, {
-           opacity: 1,
-           duration: 0.1,
-           ease: "power2.out"
-         })
-         .to(titleElement, {
-           duration: 1.2,
-           scrambleText: {
-             text: currentProject.title,
-             chars: "0123456789",
-             speed: 0.3,
-             newClass: "scrambled-text"
-           },
-           ease: "power2.out"
-         });
-     }
+    // Animate title with ScrambleText (keep as is)
+    const titleElement = containerRef.current?.querySelector('.project-title h2');
+    if (titleElement) {
+      // Clear any previous scramble text elements
+      const existingScramble = titleElement.querySelectorAll('.scrambled-text');
+      existingScramble.forEach(el => el.remove());
+      
+      tl.set(titleElement, { opacity: 0 })
+        .to(titleElement, {
+          opacity: 1,
+          duration: 0.1,
+          ease: "power2.out"
+        })
+        .to(titleElement, {
+          duration: 1.2,
+          scrambleText: {
+            text: currentProject.title,
+            chars: "0123456789",
+            speed: 0.3,
+            newClass: "scrambled-text"
+          },
+          ease: "power2.out"
+        });
+    }
 
-
-
-                   // Smooth fade in for all other elements with faster timing
-     const elementsToAnimate = [
-       '.project-pronunciation',
-       '.project-tags .tag',
-       '.project-technologies h3',
-       '.project-technologies .tech-item',
-       '.project-year span'
-     ];
+    // Smooth fade in for all other elements with faster timing
+    const elementsToAnimate = [
+      '.project-pronunciation',
+      '.project-tags .tag',
+      '.project-technologies h3',
+      '.project-technologies .tech-item'
+    ];
 
     elementsToAnimate.forEach((selector, index) => {
       const elements = containerRef.current?.querySelectorAll(selector);
@@ -548,11 +643,11 @@ const ProjectSlider = () => {
 
     return () => {
       tl.kill();
+      window.removeEventListener('resize', onResize);
       // Clean up any leftover scramble elements
-      const titleElement = containerRef.current?.querySelector('.project-title h2');
-      
-      if (titleElement) {
-        const existingScramble = titleElement.querySelectorAll('.scrambled-text');
+      const titleElementCleanup = containerRef.current?.querySelector('.project-title h2');
+      if (titleElementCleanup) {
+        const existingScramble = titleElementCleanup.querySelectorAll('.scrambled-text');
         existingScramble.forEach(el => el.remove());
       }
     };
@@ -561,8 +656,28 @@ const ProjectSlider = () => {
   const currentProject = projects[currentProjectIndex];
 
   return (
-    <div ref={containerRef} className="project-slider-container">
-             <div className="project-content">
+    <div ref={containerRef} className="project-slider-container paper">
+      <div ref={contentRef} className="project-content">
+        <div className="receipt-overlay">
+          <div className="corner-logo"></div>
+          <div className="serial-code">PRJ-0{currentProjectIndex+1}</div>
+          <div className="crop crop-tl"></div>
+          <div className="crop crop-tr"></div>
+          <div className="crop crop-bl"></div>
+          <div className="crop crop-br"></div>
+          <div className="watermark">{new Date().toISOString().slice(0,10)}-PRJ</div>
+        </div>
+        <div className="kv-row with-leaders show-key show-value animate" style={{ marginBottom: '8px' }}>
+          <span className="kv-key">Status</span>
+          <span className="kv-value">{currentProject.title.toLowerCase() === 'refrain' ? 'Inactive' : 'Active'}</span>
+        </div>
+        {/* Center navigation arrows over the slider area */}
+        <button className="project-center-arrow left" aria-label="Previous project" onClick={() => transitionToProject(currentProjectIndex === 0 ? projects.length - 1 : currentProjectIndex - 1)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        <button className="project-center-arrow right" aria-label="Next project" onClick={() => transitionToProject((currentProjectIndex + 1) % projects.length)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
                   {/* Project Title */}
           <div className="project-title">
             {currentProject.liveUrl ? (
@@ -584,27 +699,34 @@ const ProjectSlider = () => {
             <p>{currentProject.description}</p>
           </div>
 
-        {/* Tags */}
-        <div className="project-tags">
-          {currentProject.tags.map((tag, index) => (
-            <span key={index} className="tag">{tag}</span>
-          ))}
+        {/* Receipt-style meta */}
+        <div className="divider-thin project-meta" />
+        <div className="kv-row with-leaders kv-align project-meta animate" style={{ marginTop: '10px' }}>
+          <span className="kv-key">Year</span>
+          <span className="kv-value">{currentProject.year}</span>
         </div>
-
-        {/* Technologies */}
-        <div className="project-technologies">
-          <h3>Technologies</h3>
-          <div className="tech-list">
-            {currentProject.technologies.map((tech, index) => (
-              <span key={index} className="tech-item">{tech}</span>
-            ))}
+        {currentProject.liveUrl && (
+          <div className="kv-row with-leaders kv-align project-meta animate" style={{ marginTop: '6px' }}>
+            <span className="kv-key">Link</span>
+            <span className="kv-value"><a href={currentProject.liveUrl} target="_blank" rel="noreferrer">Visit</a></span>
           </div>
-        </div>
+        )}
+        {/* Inline technologies title with dropdown */}
+        <details className="project-meta" style={{ marginTop: '10px' }}>
+          <summary className="kv-row with-leaders kv-align animate" style={{ cursor: 'pointer' }}>
+            <span className="kv-key">Technologies</span>
+            <span className="kv-value">Show</span>
+          </summary>
+          <div className="project-technologies" style={{ marginTop: '10px' }}>
+            <div className="tech-list">
+              {currentProject.technologies.map((tech, index) => (
+                <span key={index} className="tech-item">{tech}</span>
+              ))}
+            </div>
+          </div>
+        </details>
 
-        {/* Year */}
-        <div className="project-year">
-          <span>{currentProject.year}</span>
-        </div>
+        {/* Removed duplicate bottom year */}
 
         {/* Scroll Indicator */}
         <div className="scroll-indicator">

@@ -10,9 +10,9 @@ const slides = [
   {
     slideTitle: "Experience",
     slideDescription:
-      "I am currently researching about ways to mitigate hallucinations and goal drift in LLM agents. On the side, I am working on a centralized college counselor platform for high school students, alongside a quantitative firm startup.",
+      "My research asks how to make models both see and remember reliably. In 3D vision, I study how to estimate and exploit the temporal dynamics of camera intrinsics (zoom, focus) directly from raw video, disentangling lens changes from scene motion and training systems that stay robust under real-world optics. In language, I investigate the mechanisms behind hallucination using DRM-style false-memory probes to pinpoint when and why LLMs hallucinate.",
     slideUrl: "/experience",
-    slideTags: ["Artificial Intelligence & Machine Learning", "Natural Language Processing", "Computer Vision", "Human-Computer Interaction"],
+    slideTags: ["Reasoning", "AI/ML", "Computer Vision", "Prompt Optimization"],
     slideImg: null, // No image for white background
   },
   {
@@ -20,7 +20,7 @@ const slides = [
     slideDescription:
       "stuff I've built",
     slideUrl: "/projects",
-    slideTags: ["Persona Vectors", "ML/Natural Language Processing", "Object Detection", "Neural Networks"],
+    slideTags: ["Persona Vectors", "NLP", "Camera Intrinsics/3D Geometry", "Nondeterminism"],
     slideImg: null, // No image for white background
   },
   {

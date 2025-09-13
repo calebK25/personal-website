@@ -121,7 +121,7 @@ const VHSLanding = ({ onStart }) => {
           },
           (error) => {
             console.warn('Geolocation error:', error);
-            setLocation('LOCATION: ACCESS DENIED');
+            set('LOCATION: ACCESS DENIED');
           }
         );
       } else {

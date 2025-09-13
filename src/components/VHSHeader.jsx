@@ -124,9 +124,9 @@ const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
         title={onToggleRecord ? 'Toggle REC' : undefined}
       >
         <span style={{ opacity: 0.8 }}>{isRec ? 'REC' : 'PLAY'}</span>
-        <span style={{ opacity: 0.9, color: isRec ? 'rgba(200,0,0,0.9)' : 'rgba(0,0,0,0.6)' }}>•</span>
+        <span style={{ opacity: 0.9, color: isRec ? 'rgba(200,0,0,0.9)' : 'rgba(0,0,0,0.9)' }}>•</span>
         <span>{timer}</span>
-        <span style={{ opacity: 0.4, marginLeft: '0.5rem' }}>{timeline}</span>
+        <span style={{ opacity: 1, color: 'black', marginLeft: '0.5rem' }}>{timeline}</span>
       </div>
 
 

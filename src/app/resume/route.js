@@ -4,7 +4,8 @@ import fs from 'fs';
 
 export async function GET() {
   try {
-    const filePath = path.join(process.cwd(), 'kha_uong_caleb_resume (1).pdf');
+    // Serve from public/resume.pdf
+    const filePath = path.join(process.cwd(), 'public', 'resume.pdf');
     const data = fs.readFileSync(filePath);
     return new NextResponse(data, {
       headers: {

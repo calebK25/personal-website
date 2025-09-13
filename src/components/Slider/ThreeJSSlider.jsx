@@ -20,41 +20,33 @@ const ThreeJSSlider = () => {
   const animationIdRef = useRef(null);
   const titleRef = useRef(null);
   const titleAnimationRef = useRef(null);
+  const locationRowRef = useRef(null);
 
-  // Photography images from the public directory
+  // Photography images from the public/photography directory
   const photographySlides = [
-    {
-      title: "Chromatic Loopscape",
-      image: "/img1.jpg",
-    },
-    {
-      title: "Solar Bloom",
-      image: "/img2.jpg",
-    },
-    {
-      title: "Neon Handscape",
-      image: "/img3.jpg",
-    },
-    {
-      title: "Echo Discs",
-      image: "/img4.jpg",
-    },
-    {
-      title: "Void Gaze",
-      image: "/img5.jpg",
-    },
-    {
-      title: "Gravity Sync",
-      image: "/img6.jpg",
-    },
-    {
-      title: "Heat Core",
-      image: "/img7.jpg",
-    },
+    { title: "San Juan", location: "San Juan, Puerto Rico", image: "/photography/San Juan, Puerto Rico.jpg" },
+    { title: "Kyoto", location: "Kyoto, Japan", image: "/photography/Kyoto.jpg" },
+    { title: "Shibuya Crossing", location: "Shibuya, Japan", image: "/photography/Shibuya Crossing.jpg" },
+    { title: "Jersey Shore", location: "Jersey Shore, New New Jersey", image: "/photography/Jersey Shore.jpg" },
+    { title: "Diamond Lake", location: "Eldora, Colorado", image: "/photography/Diamond Lake.JPG" },
   ];
 
   const [currentImageTitle, setCurrentImageTitle] = useState(photographySlides[0].title);
+  const [currentLocation, setCurrentLocation] = useState(photographySlides[0].location || photographySlides[0].title);
   const [showImageTitle, setShowImageTitle] = useState(false);
+  // Lightbox removed per request
+  const [palette, setPalette] = useState([]); // array of {hex, r,g,b}
+  const prevPaletteRef = useRef([]);
+  const [shotSettings, setShotSettings] = useState({
+    location: "",
+    date: "",
+    camera: "",
+    lens: "",
+    iso: "—",
+    aperture: "—",
+    shutter: "—",
+    resolution: ""
+  });
   const [isVisible, setIsVisible] = useState(false);
 
   // Watch for title changes and trigger animation
@@ -184,6 +176,177 @@ const ThreeJSSlider = () => {
     });
   };
 
+  // Palette extraction: bin colors on a downsized canvas, pick top 5
+  const extractPaletteFromImage = (img, topN = 5) => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const w = 80;
+      const h = Math.max(1, Math.round((img.height / img.width) * w));
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      const bins = new Map();
+      const step = 24; // bin size
+      for (let i = 0; i < data.length; i += 4) {
+        const a = data[i + 3];
+        if (a < 128) continue;
+        const r = Math.floor(data[i] / step) * step;
+        const g = Math.floor(data[i + 1] / step) * step;
+        const b = Math.floor(data[i + 2] / step) * step;
+        const key = `${r},${g},${b}`;
+        bins.set(key, (bins.get(key) || 0) + 1);
+      }
+      const sorted = Array.from(bins.entries()).sort((a, b) => b[1] - a[1]).slice(0, topN);
+      const palette = sorted.map(([k]) => {
+        const [r, g, b] = k.split(',').map(n => parseInt(n, 10));
+        const hex = `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`;
+        return { r, g, b, hex };
+      });
+      return palette;
+    } catch {
+      return [];
+    }
+  };
+
+  const computeShotSettings = (img, title) => {
+    const res = img ? `${img.naturalWidth || img.width}×${img.naturalHeight || img.height}` : "";
+    // Minimal, we can extend if EXIF parsing is added later
+    return {
+      location: title || "",
+      date: new Date().toISOString().slice(0, 10),
+      camera: "",
+      lens: "",
+      iso: "—",
+      aperture: "—",
+      shutter: "—",
+      resolution: res,
+    };
+  };
+
+  // Lightweight EXIF reader for JPEGs (ISO, FNumber, ExposureTime)
+  const fetchAndParseEXIF = async (src) => {
+    try {
+      const res = await fetch(src);
+      const buf = await res.arrayBuffer();
+      const dv = new DataView(buf);
+      // find 'Exif\0\0'
+      const exifSig = [0x45,0x78,0x69,0x66,0x00,0x00];
+      let start = -1;
+      for (let i = 0; i < dv.byteLength - 10; i += 1) {
+        if (dv.getUint8(i) === 0xFF && dv.getUint8(i+1) === 0xE1) {
+          // APP1 length
+          const len = dv.getUint16(i+2);
+          let ok = true;
+          for (let k = 0; k < 6; k += 1) if (dv.getUint8(i+4+k) !== exifSig[k]) ok = false;
+          if (ok) { start = i + 10; break; }
+          i += len;
+        }
+      }
+      if (start < 0) return {};
+      const endian = dv.getUint16(start) === 0x4949 ? 'II' : 'MM';
+      const isLE = endian === 'II';
+      const getU16 = (o) => dv.getUint16(o, isLE);
+      const getU32 = (o) => dv.getUint32(o, isLE);
+      const base = start;
+      const ifd0Offset = getU32(base + 4) + base;
+      const readIFD = (offset) => {
+        const num = getU16(offset);
+        const map = new Map();
+        for (let n = 0; n < num; n += 1) {
+          const entry = offset + 2 + n * 12;
+          const tag = getU16(entry);
+          const type = getU16(entry + 2);
+          const count = getU32(entry + 4);
+          let valueOffset = entry + 8;
+          const valSize = (type === 3 ? 2 : type === 4 ? 4 : type === 5 ? 8 : 1) * count;
+          if (valSize > 4) valueOffset = getU32(entry + 8) + base;
+          let value;
+          if (type === 3) { // SHORT
+            value = count === 1 ? getU16(valueOffset) : getU16(valueOffset);
+          } else if (type === 4) { // LONG
+            value = getU32(valueOffset);
+          } else if (type === 5) { // RATIONAL
+            const nume = getU32(valueOffset);
+            const deno = getU32(valueOffset + 4) || 1;
+            value = [nume, deno];
+          }
+          map.set(tag, value);
+        }
+        const next = getU32(offset + 2 + num * 12);
+        return { map, next: next ? next + base : 0 };
+      };
+      // IFD0 then EXIF IFD via tag 0x8769
+      const ifd0 = readIFD(ifd0Offset);
+      const exifIFDOffset = ifd0.map.get(0x8769);
+      if (!exifIFDOffset) return {};
+      const exif = readIFD(exifIFDOffset + base);
+      const iso = exif.map.get(0x8827);
+      const fnum = exif.map.get(0x829D); // [num, den]
+      const exp = exif.map.get(0x829A); // [num, den]
+      const fmtF = fnum ? `f/${(fnum[0]/fnum[1]).toFixed(1)}` : '—';
+      let fmtExp = '—';
+      if (exp) {
+        const val = exp[0] / (exp[1] || 1);
+        fmtExp = val >= 1 ? `${val.toFixed(1)}s` : `1/${Math.round(1/val)}s`;
+      }
+      return { iso: iso || '—', aperture: fmtF, shutter: fmtExp };
+    } catch {
+      return {};
+    }
+  };
+
+  // Animate palette changes: color tween + hex digit flip
+  const animateHexFlip = (el, fromHex, toHex) => {
+    if (!el) return;
+    const prevTag = el.getAttribute('data-prev');
+    if (prevTag === toHex) return; // skip identical
+    el.setAttribute('data-prev', toHex || '');
+    const from = (fromHex || '').replace('#','').padStart(6, '0').slice(0,6);
+    const to = (toHex || '').replace('#','').padStart(6, '0').slice(0,6);
+    const chars = to.split('');
+    // Build per-char wrappers with a persistent leading '#'
+    el.innerHTML = `<span class="hash">#</span>` +
+      chars.map((ch, i) => `<span class="hex-char" data-i="${i}">${from[i] || '0'}</span>`).join('');
+    const spans = el.querySelectorAll('.hex-char');
+    requestAnimationFrame(() => {
+      spans.forEach((span, i) => {
+        const tl = gsap.timeline();
+        tl.to(span, { rotateX: 90, duration: 0.25, ease: 'power2.in', delay: i * 0.05 })
+          .call(() => { span.textContent = chars[i]; })
+          .to(span, { rotateX: 0, duration: 0.25, ease: 'power2.out' });
+      });
+    });
+  };
+
+  const animatePaletteTransition = (prev, next) => {
+    const row = containerRef.current?.querySelector('.palette-row');
+    if (!row) return;
+    const swatches = row.querySelectorAll('.palette-swatch');
+    for (let i = 0; i < next.length; i += 1) {
+      const sw = swatches[i];
+      if (!sw) continue;
+      const dot = sw.querySelector('.dot');
+      const hexEl = sw.querySelector('.hex');
+      const from = prev[i]?.hex || prev[0]?.hex || '#000000';
+      const to = next[i].hex;
+      if (!/^#?[0-9a-fA-F]{6}$/.test(to)) continue; // sanity
+      // color tween
+      if (dot) {
+        const fromRGB = gsap.utils.splitColor(from);
+        const toRGB = gsap.utils.splitColor(to);
+        const col = { r: fromRGB[0], g: fromRGB[1], b: fromRGB[2] };
+        gsap.to(col, {
+          r: toRGB[0], g: toRGB[1], b: toRGB[2], duration: 0.6, ease: 'power2.out',
+          onUpdate: () => { dot.style.background = `rgb(${col.r|0}, ${col.g|0}, ${col.b|0})`; }
+        });
+      }
+      // hex flip
+      if (hexEl) animateHexFlip(hexEl, from, to);
+    }
+  };
+
   const determineTextureIndices = (position) => {
     const totalImages = photographySlides.length;
     const baseIndex = Math.floor(position % totalImages);
@@ -261,8 +424,22 @@ const ThreeJSSlider = () => {
       stableNextIndexRef.current = indices.nextIndex;
       
       // Update the current image title
-      const newTitle = photographySlides[indices.currentIndex].title;
+      const slide = photographySlides[indices.currentIndex];
+      const newTitle = slide.title;
       setCurrentImageTitle(newTitle);
+      // compute palette + settings from current texture image if available
+      const img = texturesRef.current[indices.currentIndex]?.image;
+      if (img) {
+        const nextPal = extractPaletteFromImage(img);
+        animatePaletteTransition(prevPaletteRef.current, nextPal);
+        prevPaletteRef.current = nextPal;
+        setPalette(nextPal);
+        setShotSettings(computeShotSettings(img, slide.location || slide.title));
+        // fetch EXIF for current file
+        fetchAndParseEXIF(photographySlides[indices.currentIndex].image).then((meta) => {
+          setShotSettings((prev) => ({ ...prev, ...meta }));
+        });
+      }
     }
   };
 
@@ -314,6 +491,19 @@ const ThreeJSSlider = () => {
           isStableRef.current = true;
           scrollPositionRef.current = Math.round(scrollPositionRef.current);
           targetScrollPositionRef.current = scrollPositionRef.current;
+          // Only update palette/exif when locked
+          const idx = determineTextureIndices(scrollPositionRef.current).currentIndex;
+          const img = texturesRef.current[idx]?.image;
+          if (img) {
+            const slide = photographySlides[idx];
+            const nextPal = extractPaletteFromImage(img);
+            animatePaletteTransition(prevPaletteRef.current, nextPal);
+            prevPaletteRef.current = nextPal;
+            setPalette(nextPal);
+            fetchAndParseEXIF(slide.image).then((meta) => {
+              setShotSettings((prev) => ({ ...prev, ...meta }));
+            });
+          }
         }
 
         isMovingRef.current = false;
@@ -345,6 +535,29 @@ const ThreeJSSlider = () => {
 
     // Load textures
     texturesRef.current = loadTextures();
+    // Initial palette/settings when textures finish loading async
+    setTimeout(() => {
+      const img0 = texturesRef.current[0]?.image;
+      if (img0) {
+        const nextPal = extractPaletteFromImage(img0);
+        prevPaletteRef.current = nextPal;
+        setPalette(nextPal);
+        setShotSettings(computeShotSettings(img0, photographySlides[0].title));
+        fetchAndParseEXIF(photographySlides[0].image).then((meta) => {
+          setShotSettings((prev) => ({ ...prev, ...meta }));
+        });
+      }
+      // ripple in location row once
+      const row = locationRowRef.current;
+      if (row) {
+        row.classList.remove('animate','show-key','show-value');
+        // eslint-disable-next-line no-unused-expressions
+        row.offsetWidth;
+        row.classList.add('animate');
+        setTimeout(() => row.classList.add('show-key'), 260);
+        setTimeout(() => row.classList.add('show-value'), 520);
+      }
+    }, 200);
 
     // Create plane geometry
     const dimensions = calculatePlaneDimensions();
@@ -428,13 +641,43 @@ const ThreeJSSlider = () => {
   }, [containerRef]);
 
   return (
-    <div ref={containerRef} className="threejs-slider-container">
+    <div ref={containerRef} className="threejs-slider-container paper">
+      <div className="receipt-overlay">
+        <div className="corner-logo"></div>
+        <div className="serial-code">PHO-04</div>
+        <div className="crop crop-tl"></div>
+        <div className="crop crop-tr"></div>
+        <div className="crop crop-bl"></div>
+        <div className="crop crop-br"></div>
+        <div className="watermark">{new Date().toISOString().slice(0,10)}-PHO</div>
+      </div>
+      <div ref={locationRowRef} className="kv-row with-leaders" style={{ marginBottom: '8px' }}>
+        <span className="kv-key">Location</span>
+        <span className="kv-value">{currentLocation}</span>
+      </div>
+      {/* Palette row (right aligned) */}
+      {palette && palette.length > 0 && (
+        <div className="palette-row" style={{ marginBottom: '12px', justifyContent: 'flex-end' }}>
+          {palette.map((c, i) => (
+            <div key={i} className="palette-swatch" title={c.hex}>
+              <span className="dot" style={{ background: c.hex }} />
+              <span className="hex">{c.hex.toUpperCase()}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {/* Image title overlay - only show after first scroll */}
       {showImageTitle && (
         <div className="threejs-image-title">
           <h3 ref={titleRef}>{currentImageTitle}</h3>
         </div>
       )}
+      {/* Inline shot settings under palette (ISO / Aperture / Shutter) */}
+      <div className="shot-settings" style={{ maxWidth: '900px', margin: '0 auto 8px' }}>
+        <div className="kv-row with-leaders"><span className="kv-key">ISO</span><span className="kv-value">{shotSettings.iso}</span></div>
+        <div className="kv-row with-leaders"><span className="kv-key">Aperture</span><span className="kv-value">{shotSettings.aperture}</span></div>
+        <div className="kv-row with-leaders"><span className="kv-key">Shutter</span><span className="kv-value">{shotSettings.shutter}</span></div>
+      </div>
       {/* Three.js canvas will be appended here */}
     </div>
   );
