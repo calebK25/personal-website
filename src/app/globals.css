@@ -621,6 +621,18 @@ a {
 .palette-swatch .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.25); box-shadow: 0 0 0 1px rgba(255,255,255,0.6) inset; transition: background-color 300ms ease; }
 .palette-swatch .hex { display: inline-block; perspective: 300px; }
 .palette-swatch .hex .hex-char { display: inline-block; transform-origin: 50% 50%; backface-visibility: hidden; }
+/* Slot-based hex flip (more reliable) */
+.palette-swatch .hex .slot { display: inline-block; overflow: hidden; height: 1em; width: 0.62em; vertical-align: bottom; }
+.palette-swatch .hex .reel { display: block; will-change: transform; }
+.palette-swatch .hex .reel span { display: block; height: 1em; }
+
+/* Centered location row above gallery */
+.threejs-slider-container .location-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 900px; margin: 0 auto 8px; }
+.threejs-slider-container .location-row .kv-key { justify-self: start; }
+.threejs-slider-container .location-row .kv-value { justify-self: end; }
+
+/* Keep palette inside gallery width and right align */
+.threejs-slider-container .palette-row { max-width: 900px; margin: 6px auto 12px; justify-content: flex-end; }
 
 /* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }

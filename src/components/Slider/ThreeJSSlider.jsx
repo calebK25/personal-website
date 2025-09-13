@@ -225,6 +225,28 @@ const ThreeJSSlider = () => {
     };
   };
 
+  // Compute leader mask holes for a single row (skip under key/value)
+  const setLeaderMaskForRow = (rowEl) => {
+    if (!rowEl) return;
+    try {
+      const key = rowEl.querySelector('.kv-key');
+      const value = rowEl.querySelector('.kv-value');
+      if (!key || !value) return;
+      const rect = rowEl.getBoundingClientRect();
+      const keyRect = key.getBoundingClientRect();
+      const valRect = value.getBoundingClientRect();
+      const width = rect.width || 1;
+      const hole1Start = ((keyRect.left - rect.left) / width) * 100;
+      const hole1End = ((keyRect.right - rect.left) / width) * 100;
+      const hole2Start = ((valRect.left - rect.left) / width) * 100;
+      const hole2End = ((valRect.right - rect.left) / width) * 100;
+      rowEl.style.setProperty('--hole1-start', `${hole1Start}%`);
+      rowEl.style.setProperty('--hole1-end', `${hole1End}%`);
+      rowEl.style.setProperty('--hole2-start', `${hole2Start}%`);
+      rowEl.style.setProperty('--hole2-end', `${hole2End}%`);
+    } catch {}
+  };
+
   // Lightweight EXIF reader for JPEGs (ISO, FNumber, ExposureTime)
   const fetchAndParseEXIF = async (src) => {
     try {
@@ -301,21 +323,26 @@ const ThreeJSSlider = () => {
   const animateHexFlip = (el, fromHex, toHex) => {
     if (!el) return;
     const prevTag = el.getAttribute('data-prev');
-    if (prevTag === toHex) return; // skip identical
+    if (prevTag === toHex) return;
     el.setAttribute('data-prev', toHex || '');
     const from = (fromHex || '').replace('#','').padStart(6, '0').slice(0,6);
     const to = (toHex || '').replace('#','').padStart(6, '0').slice(0,6);
-    const chars = to.split('');
-    // Build per-char wrappers with a persistent leading '#'
-    el.innerHTML = `<span class="hash">#</span>` +
-      chars.map((ch, i) => `<span class="hex-char" data-i="${i}">${from[i] || '0'}</span>`).join('');
-    const spans = el.querySelectorAll('.hex-char');
+    const targetChars = to.split('');
+    // Build reels per char (0-9, a-f)
+    const digits = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+    el.innerHTML = `<span class="hash">#</span>` + targetChars.map((t, i) => {
+      const reel = digits.concat([]); // copy
+      // ensure target at end to scroll to
+      if (reel[reel.length - 1] !== t.toLowerCase()) reel[reel.length - 1] = t.toLowerCase();
+      const reelHTML = reel.map(d => `<span>${d}</span>`).join('');
+      return `<span class="slot" data-i="${i}"><span class="reel">${reelHTML}</span></span>`;
+    }).join('');
+    const slots = el.querySelectorAll('.slot .reel');
     requestAnimationFrame(() => {
-      spans.forEach((span, i) => {
-        const tl = gsap.timeline();
-        tl.to(span, { rotateX: 90, duration: 0.25, ease: 'power2.in', delay: i * 0.05 })
-          .call(() => { span.textContent = chars[i]; })
-          .to(span, { rotateX: 0, duration: 0.25, ease: 'power2.out' });
+      slots.forEach((reel, i) => {
+        const height = reel.querySelector('span')?.offsetHeight || 16;
+        const duration = 0.6 + i * 0.05;
+        gsap.to(reel, { y: -(height * 15), duration, ease: 'power3.inOut' });
       });
     });
   };
@@ -427,18 +454,13 @@ const ThreeJSSlider = () => {
       const slide = photographySlides[indices.currentIndex];
       const newTitle = slide.title;
       setCurrentImageTitle(newTitle);
+      setCurrentLocation(slide.location || slide.title);
       // compute palette + settings from current texture image if available
       const img = texturesRef.current[indices.currentIndex]?.image;
       if (img) {
-        const nextPal = extractPaletteFromImage(img);
-        animatePaletteTransition(prevPaletteRef.current, nextPal);
-        prevPaletteRef.current = nextPal;
-        setPalette(nextPal);
+        // Defer animations to stabilize; snap handler will handle final update
+        // Only update title/location here to avoid double palette animation
         setShotSettings(computeShotSettings(img, slide.location || slide.title));
-        // fetch EXIF for current file
-        fetchAndParseEXIF(photographySlides[indices.currentIndex].image).then((meta) => {
-          setShotSettings((prev) => ({ ...prev, ...meta }));
-        });
       }
     }
   };
@@ -497,12 +519,26 @@ const ThreeJSSlider = () => {
           if (img) {
             const slide = photographySlides[idx];
             const nextPal = extractPaletteFromImage(img);
-            animatePaletteTransition(prevPaletteRef.current, nextPal);
+            // Rebuild slot reels fresh before animating to ensure clean state
+            const row = containerRef.current?.querySelector('.palette-row');
+            if (row) {
+              const swatches = row.querySelectorAll('.palette-swatch .hex');
+              swatches.forEach((hexEl, i) => {
+                const from = prevPaletteRef.current[i]?.hex || prevPaletteRef.current[0]?.hex || '#000000';
+                const toHex = nextPal[i]?.hex || from;
+                if (hexEl && toHex) {
+                  hexEl.removeAttribute('data-prev');
+                  animateHexFlip(hexEl, from, toHex);
+                }
+              });
+            }
             prevPaletteRef.current = nextPal;
             setPalette(nextPal);
             fetchAndParseEXIF(slide.image).then((meta) => {
               setShotSettings((prev) => ({ ...prev, ...meta }));
             });
+            // Recompute leader mask for location row when locked
+            setLeaderMaskForRow(locationRowRef.current);
           }
         }
 
@@ -542,11 +578,12 @@ const ThreeJSSlider = () => {
         const nextPal = extractPaletteFromImage(img0);
         prevPaletteRef.current = nextPal;
         setPalette(nextPal);
-        setShotSettings(computeShotSettings(img0, photographySlides[0].title));
+        setShotSettings(computeShotSettings(img0, photographySlides[0].location || photographySlides[0].title));
         fetchAndParseEXIF(photographySlides[0].image).then((meta) => {
           setShotSettings((prev) => ({ ...prev, ...meta }));
         });
       }
+      requestAnimationFrame(() => setLeaderMaskForRow(locationRowRef.current));
       // ripple in location row once
       const row = locationRowRef.current;
       if (row) {
@@ -651,17 +688,22 @@ const ThreeJSSlider = () => {
         <div className="crop crop-br"></div>
         <div className="watermark">{new Date().toISOString().slice(0,10)}-PHO</div>
       </div>
-      <div ref={locationRowRef} className="kv-row with-leaders" style={{ marginBottom: '8px' }}>
+      <div ref={locationRowRef} className="kv-row with-leaders location-row" style={{ marginBottom: '8px' }}>
         <span className="kv-key">Location</span>
         <span className="kv-value">{currentLocation}</span>
       </div>
       {/* Palette row (right aligned) */}
       {palette && palette.length > 0 && (
-        <div className="palette-row" style={{ marginBottom: '12px', justifyContent: 'flex-end' }}>
+        <div className="palette-row">
           {palette.map((c, i) => (
             <div key={i} className="palette-swatch" title={c.hex}>
               <span className="dot" style={{ background: c.hex }} />
-              <span className="hex">{c.hex.toUpperCase()}</span>
+              <span className="hex" data-idx={i}>
+                <span className="hash">#</span>
+                {[0,1,2,3,4,5].map((d) => (
+                  <span key={d} className="slot"><span className="reel">{['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'].map((ch, k) => (<span key={k}>{ch}</span>))}</span></span>
+                ))}
+              </span>
             </div>
           ))}
         </div>
