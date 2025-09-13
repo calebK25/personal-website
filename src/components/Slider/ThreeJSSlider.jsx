@@ -247,6 +247,25 @@ const ThreeJSSlider = () => {
     } catch {}
   };
 
+  const positionPaletteRow = () => {
+    try {
+      const container = containerRef.current;
+      if (!container) return;
+      const canvas = container.querySelector('canvas');
+      const paletteRow = container.querySelector('.palette-row');
+      if (!canvas || !paletteRow) return;
+      const cr = container.getBoundingClientRect();
+      const rr = canvas.getBoundingClientRect();
+      const left = rr.left - cr.left;
+      const top = rr.bottom - cr.top + 8; // 8px gap below gallery
+      const width = rr.width;
+      paletteRow.style.left = `${left}px`;
+      paletteRow.style.top = `${top}px`;
+      paletteRow.style.width = `${width}px`;
+      paletteRow.style.right = 'auto';
+    } catch {}
+  };
+
   // Lightweight EXIF reader for JPEGs (ISO, FNumber, ExposureTime)
   const fetchAndParseEXIF = async (src) => {
     try {
@@ -594,7 +613,10 @@ const ThreeJSSlider = () => {
           }
         });
       }
-      requestAnimationFrame(() => setLeaderMaskForRow(locationRowRef.current));
+      requestAnimationFrame(() => {
+        setLeaderMaskForRow(locationRowRef.current);
+        positionPaletteRow();
+      });
       // ripple in location row once
       const row = locationRowRef.current;
       if (row) {
@@ -651,6 +673,7 @@ const ThreeJSSlider = () => {
         32,
         32
       );
+      positionPaletteRow();
     };
 
     window.addEventListener("resize", handleResize);

@@ -633,7 +633,7 @@ a {
 
 /* Keep palette inside gallery width and right align */
 .threejs-slider-container { position: relative; }
-.threejs-slider-container .palette-row { position: absolute; right: 12px; top: calc(100% + 8px); margin: 0; max-width: calc(100% - 24px); justify-content: flex-end; }
+.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: flex-end; }
 
 /* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }
