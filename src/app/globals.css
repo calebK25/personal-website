@@ -627,12 +627,13 @@ a {
 .palette-swatch .hex .reel span { display: block; height: 1em; }
 
 /* Centered location row above gallery */
-.threejs-slider-container .location-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 900px; margin: 0 auto 8px; }
+.threejs-slider-container .location-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 900px; margin: 12px auto 8px; }
 .threejs-slider-container .location-row .kv-key { justify-self: start; }
 .threejs-slider-container .location-row .kv-value { justify-self: end; }
 
 /* Keep palette inside gallery width and right align */
-.threejs-slider-container .palette-row { max-width: 900px; margin: 6px auto 12px; justify-content: flex-end; }
+.threejs-slider-container { position: relative; }
+.threejs-slider-container .palette-row { position: absolute; right: 12px; top: calc(100% + 8px); margin: 0; max-width: calc(100% - 24px); justify-content: flex-end; }
 
 /* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }
@@ -809,8 +810,8 @@ a {
   background-image: url('/White Concrete Background.jpg');
   background-size: cover;
   background-position: center;
-  opacity: 0.25; /* subtle; adjust as needed */
-  mix-blend-mode: multiply;
+  opacity: 0.14; /* lighter to reduce darken flash */
+  will-change: transform; /* hint for smoother rendering */
 }
 
 .divider-thin { height: 1px; background: rgba(0,0,0,0.08); width: 100%; }

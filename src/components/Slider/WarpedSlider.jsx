@@ -239,8 +239,8 @@ const WarpedSlider = () => {
       overlay.className = 'page-transition-overlay';
       document.body.appendChild(overlay);
     }
-    gsap.set(overlay, { opacity: 0 });
-    timeline.to(overlay, { opacity: 0.15, duration: 0.3, ease: 'power2.out' }, 0);
+    gsap.set(overlay, { opacity: 0, pointerEvents: 'none' });
+    // Remove dark flash: keep overlay transparent (no fade in)
 
     // Animate counter exit
     const currentCounterLines = currentContent.querySelectorAll(".slide-index-wrapper .line");

@@ -582,6 +582,17 @@ const ThreeJSSlider = () => {
         fetchAndParseEXIF(photographySlides[0].image).then((meta) => {
           setShotSettings((prev) => ({ ...prev, ...meta }));
         });
+        // Animate reels immediately on first load
+        requestAnimationFrame(() => {
+          const palRow = containerRef.current?.querySelector('.palette-row');
+          if (palRow) {
+            const swatches = palRow.querySelectorAll('.palette-swatch .hex');
+            swatches.forEach((hexEl, i) => {
+              const toHex = nextPal?.[i]?.hex;
+              if (hexEl && toHex) animateHexFlip(hexEl, '#000000', toHex);
+            });
+          }
+        });
       }
       requestAnimationFrame(() => setLeaderMaskForRow(locationRowRef.current));
       // ripple in location row once
