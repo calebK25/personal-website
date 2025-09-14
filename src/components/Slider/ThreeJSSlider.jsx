@@ -234,11 +234,10 @@ const ThreeJSSlider = () => {
       const cr = container.getBoundingClientRect();
       const rr = canvas.getBoundingClientRect();
       const top = Math.round(rr.bottom - cr.top + 8); // gap below photo
-      // Align the palette's right edge exactly with the photo's right border
+      // Center the palette beneath the canvas
       const contentWidth = Math.round(paletteRow.scrollWidth);
-      const desiredRight = Math.round(rr.right - cr.left);
-      const desiredLeft = Math.max(0, desiredRight - contentWidth);
-      paletteRow.style.left = `${desiredLeft}px`;
+      const centerLeft = Math.round((rr.left - cr.left) + (rr.width / 2) - (contentWidth / 2));
+      paletteRow.style.left = `${Math.max(0, centerLeft)}px`;
       paletteRow.style.top = `${top}px`;
       paletteRow.style.width = `${contentWidth}px`;
       paletteRow.style.right = 'auto';
