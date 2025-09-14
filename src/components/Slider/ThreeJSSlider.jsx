@@ -166,8 +166,29 @@ const ThreeJSSlider = () => {
 
   const loadTextures = () => {
     const textureLoader = new THREE.TextureLoader();
-    return photographySlides.map((slide) => {
-      const texture = textureLoader.load(slide.image);
+    return photographySlides.map((slide, index) => {
+      const texture = textureLoader.load(slide.image, (tex) => {
+        if (index === 0 && tex && tex.image) {
+          try {
+            const nextPal = extractPaletteFromImage(tex.image);
+            prevPaletteRef.current = nextPal;
+            setPalette(nextPal);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                positionPaletteRow();
+                const palRow = containerRef.current?.querySelector('.palette-row');
+                if (palRow) {
+                  const swatches = palRow.querySelectorAll('.palette-swatch .hex');
+                  swatches.forEach((hexEl, i) => {
+                    const toHex = nextPal?.[i]?.hex;
+                    if (hexEl && toHex) animateHexFlip(hexEl, '#000000', toHex);
+                  });
+                }
+              });
+            });
+          } catch {}
+        }
+      });
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
       return texture;
@@ -543,6 +564,10 @@ const ThreeJSSlider = () => {
             fetchAndParseEXIF(slide.image).then((meta) => {
               setShotSettings((prev) => ({ ...prev, ...meta }));
             });
+            // Reposition palette after state commit (prod stability)
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => positionPaletteRow());
+            });
           }
         }
 
@@ -586,22 +611,22 @@ const ThreeJSSlider = () => {
         fetchAndParseEXIF(photographySlides[0].image).then((meta) => {
           setShotSettings((prev) => ({ ...prev, ...meta }));
         });
-        // Animate reels immediately on first load and position palette
+        // Animate reels immediately on first load and position palette (double rAF for prod stability)
         requestAnimationFrame(() => {
-          positionPaletteRow();
-          const palRow = containerRef.current?.querySelector('.palette-row');
-          if (palRow) {
-            const swatches = palRow.querySelectorAll('.palette-swatch .hex');
-            swatches.forEach((hexEl, i) => {
-              const toHex = nextPal?.[i]?.hex;
-              if (hexEl && toHex) animateHexFlip(hexEl, '#000000', toHex);
-            });
-          }
+          requestAnimationFrame(() => {
+            positionPaletteRow();
+            const palRow = containerRef.current?.querySelector('.palette-row');
+            if (palRow) {
+              const swatches = palRow.querySelectorAll('.palette-swatch .hex');
+              swatches.forEach((hexEl, i) => {
+                const toHex = nextPal?.[i]?.hex;
+                if (hexEl && toHex) animateHexFlip(hexEl, '#000000', toHex);
+              });
+            }
+          });
         });
       }
-      requestAnimationFrame(() => {
-        positionPaletteRow();
-      });
+      requestAnimationFrame(() => { requestAnimationFrame(() => positionPaletteRow()); });
     }, 200);
 
     // Create plane geometry

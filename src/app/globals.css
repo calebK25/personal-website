@@ -619,11 +619,14 @@ a {
 /* Photography UI elements */
 .palette-row { display: flex; gap: 12px; align-items: center; margin: 6px 0 12px; justify-content: center; flex-wrap: nowrap; white-space: nowrap; }
 .palette-swatch { display: inline-flex; align-items: center; gap: 8px; font-family: "DM Mono"; font-size: 12px; }
+.palette-swatch .hex { display: inline-flex; align-items: center; }
+.palette-swatch .hex .hash { display: inline-block; height: 1em; line-height: 1em; vertical-align: middle; }
+.palette-swatch .hex .slot { text-align: center; height: 1em; line-height: 1em; vertical-align: middle; }
 .palette-swatch .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.25); box-shadow: 0 0 0 1px rgba(255,255,255,0.6) inset; transition: background-color 300ms ease; }
 .palette-swatch .hex { display: inline-block; perspective: 300px; }
 .palette-swatch .hex .hex-char { display: inline-block; transform-origin: 50% 50%; backface-visibility: hidden; }
 /* Slot-based hex flip (more reliable) */
-.palette-swatch .hex .slot { display: inline-block; overflow: hidden; height: 1em; width: 0.62em; vertical-align: bottom; }
+.palette-swatch .hex .slot { display: inline-block; overflow: hidden; height: 1em; width: 0.62em; vertical-align: middle; }
 .palette-swatch .hex .reel { display: block; will-change: transform; }
 .palette-swatch .hex .reel span { display: block; height: 1em; }
 
@@ -654,7 +657,9 @@ a {
   inset: 0;
   width: 100%;
   display: grid;
-  place-items: center;
+  align-items: start; /* move gallery higher */
+  justify-items: center;
+  padding-top: 8vh; /* nudge upward visually */
   /* Above slides */
   z-index: 11050;
   pointer-events: auto;
@@ -707,10 +712,11 @@ a {
   max-width: 260px;
   overflow: hidden;
   vertical-align: baseline;
-  border: 1px solid rgba(0,0,0,0.25);
-  padding: 2px 6px;
+  /* remove box visuals */
+  border: none;
+  padding: 0;
   margin: 0;
-  border-radius: 2px;
+  border-radius: 0;
 }
 
 .spotify-line {
@@ -725,6 +731,23 @@ a {
   letter-spacing: -0.01rem;
   text-transform: uppercase;
   color: #000;
+}
+
+/* Hover-to-scroll marquee effect (without breaking layout) */
+.slide-tags .spotify-container { position: relative; }
+.slide-tags .spotify-container .spotify-line {
+  display: inline-block;
+  will-change: transform;
+  transition: transform 0.2s ease;
+}
+.slide-tags .spotify-container:hover .spotify-line {
+  animation: spotifyScroll 8s linear infinite;
+}
+@keyframes spotifyScroll {
+  0% { transform: translateX(0); }
+  10% { transform: translateX(0); }
+  90% { transform: translateX(calc(-100% + 260px)); }
+  100% { transform: translateX(calc(-100% + 260px)); }
 }
 
 @media (max-width: 768px) {

@@ -121,7 +121,7 @@ const VHSLanding = ({ onStart }) => {
           },
           (error) => {
             console.warn('Geolocation error:', error);
-            set('LOCATION: ACCESS DENIED');
+            setLocation('LOCATION: ACCESS DENIED');
           }
         );
       } else {
@@ -145,14 +145,14 @@ const VHSLanding = ({ onStart }) => {
       const glitchTimer = setTimeout(() => {
         try {
           // Verify elements exist before applying glitch
-          const overlayElement = document.querySelector('.overlay');
-          const glitchElements = document.querySelectorAll('.glitch');
+          const overlayElement = vcrRef.current;
+          const glitchElements = Array.from(document.querySelectorAll('.glitch')).filter(el => el && el.nodeType === 1 && el.isConnected);
           
-          if (overlayElement && glitchElements.length > 0) {
-            const glitch0 = PowerGlitch.glitch('.overlay', {
+          if (overlayElement && overlayElement.isConnected && glitchElements.length > 0) {
+            const glitch0 = PowerGlitch.glitch(overlayElement, {
               glitchTimeSpan: false,
             });
-            const glitch1 = PowerGlitch.glitch('.glitch', {
+            const glitch1 = PowerGlitch.glitch(glitchElements, {
               timing: {
                 duration: 700,
                 easing: 'ease-in-out',
