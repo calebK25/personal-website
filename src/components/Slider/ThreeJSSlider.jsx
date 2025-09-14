@@ -254,7 +254,7 @@ const ThreeJSSlider = () => {
       if (!canvas || !paletteRow) return;
       const cr = container.getBoundingClientRect();
       const rr = canvas.getBoundingClientRect();
-      const top = Math.round(rr.bottom - cr.top + 4); // tighter gap below photo
+      const top = Math.round(rr.bottom - cr.top + 16); // move palette further down
       // Ensure measurement after layout; measure intrinsic width
       paletteRow.style.width = 'auto';
       // Force reflow to get a reliable scrollWidth even if fonts just loaded

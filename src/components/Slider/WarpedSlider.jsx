@@ -114,6 +114,34 @@ const WarpedSlider = () => {
     });
   };
 
+  const setupSpotifyMarquee = (container) => {
+    const wrapper = container.querySelector('.spotify-container');
+    const line = container.querySelector('.spotify-line');
+    if (!wrapper || !line) return;
+    // remove prior listeners to avoid stacking
+    const clone = line.cloneNode(true);
+    line.parentNode.replaceChild(clone, line);
+    const maxWidth = wrapper.clientWidth;
+    const measure = () => ({ w: clone.scrollWidth, max: wrapper.clientWidth });
+    const onEnter = () => {
+      const { w, max } = measure();
+      if (w <= max + 2) return; // no need to scroll
+      const distance = w - max;
+      clone.style.transition = 'transform 0s linear';
+      clone.style.transform = 'translateX(0)';
+      requestAnimationFrame(() => {
+        clone.style.transition = `transform ${Math.max(6, distance/30)}s linear`;
+        clone.style.transform = `translateX(-${distance}px)`;
+      });
+    };
+    const onLeave = () => {
+      clone.style.transition = 'transform 0.25s ease-out';
+      clone.style.transform = 'translateX(0)';
+    };
+    wrapper.addEventListener('mouseenter', onEnter);
+    wrapper.addEventListener('mouseleave', onLeave);
+  };
+
   const updateSpotifyInfo = async (container) => {
     const spotifyContainer = container.querySelector('.spotify-container');
     if (!spotifyContainer) return;
@@ -411,6 +439,7 @@ const WarpedSlider = () => {
 
           // Ensure arrow controls are wired for the newly created slide
           setupSlideControls(newContent);
+          setupSpotifyMarquee(newContent);
           
           // Set counter initial state
           if (newCounterLines && newCounterLines.length > 0) {
@@ -939,6 +968,7 @@ const WarpedSlider = () => {
       processTextElements(initialContent);
       setupSocialLinks(initialContent);
       setupSlideControls(initialContent);
+      setupSpotifyMarquee(initialContent);
       // Prepare full-name words
       const nameWords = initialContent.querySelectorAll('.full-name .word');
       if (nameWords && nameWords.length > 0) { gsap.set(nameWords, { y: '100%' }); }
