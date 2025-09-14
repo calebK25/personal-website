@@ -28,17 +28,14 @@ const VHSLanding = ({ onStart }) => {
       
       setIsInitialized(true);
       
-      // Play audio effect
       if (audioRef.current) {
         audioRef.current.cloneNode(true).play();
       }
 
-      // Stop timers
       clearInterval(timerIntervalRef.current);
       clearInterval(spinnerIntervalRef.current);
       clearInterval(timeIntervalRef.current);
 
-      // Clean up all glitch effects
       glitchInstancesRef.current.forEach(instance => {
         if (instance && typeof instance.stopGlitch === 'function') {
           try {
@@ -50,18 +47,15 @@ const VHSLanding = ({ onStart }) => {
       });
       glitchInstancesRef.current = [];
 
-      // Fade out VCR overlay
       if (vcrRef.current) {
         vcrRef.current.style.opacity = 0;
       }
 
-      // Call the onStart callback to transition to the slider
       setTimeout(() => {
         onStart();
       }, 1000);
     };
 
-    // Timer functionality
     let time = 0;
     timerIntervalRef.current = setInterval(() => {
       time += 1;
@@ -71,7 +65,6 @@ const VHSLanding = ({ onStart }) => {
       setTimer(`${hours}:${minutes}:${seconds}`);
     }, 1000);
 
-    // Spinner functionality
     const timeChars = ["|", "/", "-", "\\"];
     let i = 0;
     spinnerIntervalRef.current = setInterval(() => {
@@ -79,7 +72,6 @@ const VHSLanding = ({ onStart }) => {
       setSpinner(timeChars[i % timeChars.length]);
     }, 100);
 
-    // Real time and date functionality
     const updateTimeAndDate = () => {
       const now = new Date();
       
@@ -96,11 +88,9 @@ const VHSLanding = ({ onStart }) => {
       setCurrentDate(`${day}/${month}/${year}`);
     };
 
-    // Update immediately and then every second
     updateTimeAndDate();
     timeIntervalRef.current = setInterval(updateTimeAndDate, 1000);
 
-    // Geolocation functionality
     const getLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(

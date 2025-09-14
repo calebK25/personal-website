@@ -97,7 +97,7 @@ const WarpedSlider = () => {
     });
   };
 
-  // Attach listeners to dynamically injected slide arrows
+  // Attach listeners to slide arrows
   const setupSlideControls = (container) => {
     const arrowButtons = container.querySelectorAll('.slide-arrow-btn');
     arrowButtons.forEach((btn) => {
@@ -260,7 +260,7 @@ const WarpedSlider = () => {
 
     const timeline = gsap.timeline();
 
-    // Minimal page transition overlay
+    // Page transition overlay (transparent)
     let overlay = document.querySelector('.page-transition-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -437,7 +437,7 @@ const WarpedSlider = () => {
           }
           gsap.set(newContent, { opacity: 1 });
 
-          // Ensure arrow controls are wired for the newly created slide
+          // Wire slide controls
           setupSlideControls(newContent);
           setupSpotifyMarquee(newContent);
           
@@ -446,14 +446,14 @@ const WarpedSlider = () => {
             gsap.set(newCounterLines, { y: "100%", opacity: 1 });
           }
 
-          // Set initial state for profile picture and full name container
+          // Initial profile picture/full name state
           const profileStatsContainer = newContent.querySelector(".profile-stats-container");
           if (profileStatsContainer) {
             gsap.set(profileStatsContainer, {
               opacity: 1,
             });
             
-            // Set initial state for profile picture
+            // Initial state for profile picture
             const profileImg = profileStatsContainer.querySelector(".profile-img");
             if (profileImg) {
               gsap.set(profileImg, {
@@ -461,7 +461,7 @@ const WarpedSlider = () => {
               });
             }
             
-            // Set initial state for full name words
+            // Initial state for full name words
             const fullNameWordsInit = profileStatsContainer.querySelectorAll(".full-name .word");
             if (fullNameWordsInit && fullNameWordsInit.length > 0) {
               gsap.set(fullNameWordsInit, { y: "100%" });
@@ -479,7 +479,7 @@ const WarpedSlider = () => {
               },
           });
 
-          // Animate title words (reference timing)
+          // Animate title words
           if (newTitleWords && newTitleWords.length > 0) {
             const validTitleWords = Array.from(newTitleWords).filter(el => el && el.nodeType === 1);
             if (validTitleWords.length > 0) {
@@ -767,7 +767,7 @@ const WarpedSlider = () => {
     // Animate profile picture and full name container on initial load
     const profileStatsContainer = content.querySelector(".profile-stats-container");
     if (profileStatsContainer) {
-      // Set initial state
+      // Initial state
       const profileImg = profileStatsContainer.querySelector(".profile-img");
       
       if (profileImg) {
@@ -797,7 +797,7 @@ const WarpedSlider = () => {
         y: 20
       });
 
-      // Animate the tech stack container with smooth entrance
+      // Animate tech stack container
       gsap.to(techStack, {
         opacity: 1,
         scale: 1,

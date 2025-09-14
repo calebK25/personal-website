@@ -603,7 +603,6 @@ a {
   }
 }
 
-/* ThreeJS Slider Styles */
 .threejs-slider-container {
   width: 100%;
   height: 50vh;
@@ -616,7 +615,6 @@ a {
   position: relative;
 }
 
-/* Photography UI elements */
 .palette-row { display: flex; gap: 12px; align-items: center; margin: 6px 0 12px; justify-content: center; flex-wrap: nowrap; white-space: nowrap; }
 .palette-swatch { display: inline-flex; align-items: center; gap: 8px; font-family: "DM Mono"; font-size: 12px; }
 .palette-swatch .hex { display: inline-flex; align-items: center; }
@@ -630,27 +628,16 @@ a {
 .palette-swatch .hex .reel { display: block; will-change: transform; }
 .palette-swatch .hex .reel span { display: block; height: 1em; }
 
-/* Centered location row above gallery */
-.threejs-slider-container .location-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 900px; margin: 12px auto 8px; }
-.threejs-slider-container .location-row .kv-key { justify-self: start; }
-.threejs-slider-container .location-row .kv-value { justify-self: end; }
-/* Allow GSAP to drive a smooth line grow via CSS variable */
-.threejs-slider-container .location-row:before { transform: translateY(-50%) scaleX(var(--locLineScale, 0)); transition: none; }
 
-/* Keep palette inside gallery width and right align */
 .threejs-slider-container { position: relative; }
 .threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: center; visibility: hidden; z-index: 5; }
 
-/* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }
 .threejs-gallery-container + .shot-settings, .threejs-slider-container .shot-settings {
   position: absolute; left: 16px; bottom: 16px; max-width: 50vw;
 }
 
-.photo-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.photo-lightbox .lightbox-inner { background: #fff; max-width: 90vw; max-height: 90vh; display: grid; grid-template-columns: 1fr 280px; gap: 16px; padding: 16px; border-radius: 6px; }
-.photo-lightbox img { width: 100%; height: auto; object-fit: contain; }
-.photo-lightbox .lightbox-info { overflow: auto; }
+
 
 .threejs-gallery-container {
   position: absolute;
@@ -696,7 +683,6 @@ a {
   letter-spacing: 0.05em;
 }
 
-/* Minimal page transition overlay */
 .page-transition-overlay {
   position: fixed;
   inset: 0;
@@ -706,7 +692,6 @@ a {
   pointer-events: none;
 }
 
-/* Simple visualizer bars for Spotify */
 .spotify-line-container, .slide-tags .spotify-container {
   display: inline-block;
   max-width: 260px;
@@ -733,7 +718,6 @@ a {
   color: #000;
 }
 
-/* Hover-to-scroll marquee effect (without breaking layout) */
 .slide-tags .spotify-container { position: relative; }
 .slide-tags .spotify-container .spotify-line {
   display: inline-block;
@@ -746,7 +730,6 @@ a {
   .spotify-line-container { max-width: 180px; }
 }
 
-/* Experience Timeline Styles */
 .experience-list {
   position: absolute;
   top: 36%;
@@ -791,14 +774,11 @@ a {
 .exp-sub { opacity: 0.8; margin-top: 2px; font-size: 0.85rem; }
 .exp-desc { opacity: 0.7; margin-top: 6px; font-size: 0.8rem; }
 
-/* Typing effect */
-/* caret for programmatic typing */
 .caret { display: inline-block; width: 1px; height: 1em; background: #000; margin-left: 2px; animation: blink 1s step-end infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
 .experience-list.exp-visible { opacity: 1; }
 
-/* simple enter/exit animations */
 .exp-enter { animation: expIn 0.5s ease-out; }
 .experience-list.timeline-exit { animation: expOut 0.4s ease-in forwards; }
 @keyframes expIn { from { opacity: 0; transform: translate(-50%, -60%); } to { opacity: 1; transform: translate(-50%, -50%); } }
@@ -813,11 +793,9 @@ a {
   100% { width: 0ch;}
 }
 
-/* Paper noise + receipt utilities */
 .paper { position: relative; }
 .paper::before { content: none; }
 
-/* Paper texture overlay inside each slide, above background and below UI */
 .slider::after {
   content: "";
   position: absolute;
@@ -899,14 +877,12 @@ a {
 .fromto .ft-key { grid-column: 1; text-transform: uppercase; letter-spacing: 0.05em; background: transparent; padding: 0 6px; position: relative; z-index: 2; }
 .fromto .ft-value { grid-column: 3; justify-self: end; background: transparent; padding: 0 6px; position: relative; z-index: 2; }
 
-/* Underline grow for slide titles */
 .slide-title h1 { position: relative; display: inline-block; }
 .slide-title h1.underline::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 1px; background: #000; transform: scaleX(0); transform-origin: left; transition: transform 300ms ease; }
 .slide-title h1.underline.title-show::after { transform: scaleX(1); }
 
 .project-meta { width: 100%; max-width: 900px; margin: 0 auto; }
 
-/* Receipt overlay: serial + crop marks + top square */
 .receipt-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
 .receipt-overlay .serial-code { position: absolute; left: 24px; top: 80px; font-family: "DM Mono"; font-size: 24px; color: rgba(0,0,0,0.35); }
 .receipt-overlay .corner-logo { position: absolute; left: 50%; top: 38px; width: 16px; height: 16px; border: 1px solid rgba(0,0,0,0.6); transform: translateX(-50%); }
@@ -920,18 +896,15 @@ a {
 .receipt-overlay .crop:after  { width: 1px; height: 14px; left: 0; top: 0; }
 .receipt-overlay .watermark { position: absolute; right: 20px; bottom: 16px; font-family: "DM Mono"; font-size: 11px; color: rgba(0,0,0,0.25); }
 
-/* Ensure overlay doesn't cover content on Experience */
 .experience-list .receipt-overlay { z-index: 0; }
 .experience-list .kv-row,
 .experience-list .exp-items { position: relative; z-index: 1; }
 .experience-list .receipt-overlay .serial-code { top: 28px; left: 18px; opacity: 0.25; }
 
-/* Micro meta under titles */
 .micro-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-top: 8px; max-width: 900px; }
 .kv-key { font-variant-caps: all-small-caps; letter-spacing: 0.06em; }
 .kv-value, .with-leaders, .fromto, .nowplaying-row { font-variant-numeric: tabular-nums; }
 
-/* Copy button (IBAN row) */
 .copy-btn { appearance: none; border: none; background: none; padding: 0; cursor: pointer; color: #000; }
 .copy-btn:hover { text-decoration: underline; }
 

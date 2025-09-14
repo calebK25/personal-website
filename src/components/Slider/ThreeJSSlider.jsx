@@ -7,7 +7,6 @@ import gsap from "gsap";
 import { SplitText } from "gsap/SplitText";
 
 const ThreeJSSlider = () => {
-  // Register GSAP plugins
   gsap.registerPlugin(SplitText);
   
   const containerRef = useRef(null);
@@ -32,7 +31,6 @@ const ThreeJSSlider = () => {
 
   const [currentImageTitle, setCurrentImageTitle] = useState(photographySlides[0].title);
   const [showImageTitle, setShowImageTitle] = useState(false);
-  // Lightbox removed per request
   const [palette, setPalette] = useState([]); // array of {hex, r,g,b}
   const prevPaletteRef = useRef([]);
   const [shotSettings, setShotSettings] = useState({
@@ -47,14 +45,12 @@ const ThreeJSSlider = () => {
   });
   const [isVisible, setIsVisible] = useState(false);
 
-  // Watch for title changes and trigger animation
   useEffect(() => {
     if (currentImageTitle && titleRef.current) {
       animateTitle(currentImageTitle);
     }
   }, [currentImageTitle]);
 
-  // Watch for visibility changes from parent
   useEffect(() => {
     const checkVisibility = () => {
       if (containerRef.current) {
@@ -87,7 +83,6 @@ const ThreeJSSlider = () => {
     };
   }, [isVisible]);
 
-  // Handle wheel events on the gallery container (reverted to local listener)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -136,7 +131,6 @@ const ThreeJSSlider = () => {
     };
   }, [isVisible, showImageTitle]);
 
-  // Animation state
   const scrollIntensityRef = useRef(0);
   const targetScrollIntensityRef = useRef(0);
   const scrollPositionRef = useRef(0);
@@ -195,7 +189,6 @@ const ThreeJSSlider = () => {
     });
   };
 
-  // Palette extraction: bin colors on a downsized canvas, pick top 5
   const extractPaletteFromImage = (img, topN = 5) => {
     try {
       const canvas = document.createElement('canvas');
@@ -254,15 +247,12 @@ const ThreeJSSlider = () => {
       if (!canvas || !paletteRow) return;
       const cr = container.getBoundingClientRect();
       const rr = canvas.getBoundingClientRect();
-      const top = Math.round(rr.bottom - cr.top + 16); // move palette further down
-      // Ensure measurement after layout; measure intrinsic width
+      const top = Math.round(rr.bottom - cr.top + 16);
       paletteRow.style.width = 'auto';
-      // Force reflow to get a reliable scrollWidth even if fonts just loaded
       // eslint-disable-next-line no-unused-expressions
       paletteRow.offsetWidth;
       let contentWidth = Math.round(paletteRow.scrollWidth);
       if (!contentWidth || contentWidth < 10) {
-        // Try again on next frame if not ready yet (e.g., fonts or reels not laid out)
         requestAnimationFrame(() => positionPaletteRow());
         return;
       }
@@ -275,7 +265,6 @@ const ThreeJSSlider = () => {
     } catch {}
   };
 
-  // Lightweight EXIF reader for JPEGs (ISO, FNumber, ExposureTime)
   const fetchAndParseEXIF = async (src) => {
     try {
       const res = await fetch(src);
@@ -347,7 +336,6 @@ const ThreeJSSlider = () => {
     }
   };
 
-  // Animate palette changes: color tween + hex digit flip
   const animateHexFlip = (el, fromHex, toHex) => {
     if (!el) return;
     const prevTag = el.getAttribute('data-prev');
@@ -439,20 +427,15 @@ const ThreeJSSlider = () => {
     const titleElement = titleRef.current;
     if (!titleElement) return;
     
-    // Update the text content
     titleElement.textContent = newTitle;
     
-    // Reset opacity to ensure it's visible
     gsap.set(titleElement, { opacity: 1 });
     
-    // Create SplitText
     const splitText = new SplitText(titleElement, { type: "chars" });
     const chars = splitText.chars;
     
-    // Set initial state
     gsap.set(chars, { opacity: 0, y: 20 });
     
-    // Animate in
     titleAnimationRef.current = gsap.timeline()
       .to(chars, {
         opacity: 1,
@@ -465,7 +448,7 @@ const ThreeJSSlider = () => {
         opacity: 0,
         duration: 0.5,
         ease: "power2.in"
-      }, "+=2"); // Wait 2 seconds before fading out
+      }, "+=2");
   };
 
   const snapToNearestImage = () => {
