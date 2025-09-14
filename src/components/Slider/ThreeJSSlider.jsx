@@ -247,6 +247,21 @@ const ThreeJSSlider = () => {
     } catch {}
   };
 
+  const animateLocationRow = () => {
+    const row = locationRowRef.current;
+    if (!row) return;
+    // smooth minimal: fade+slide value and GSAP-driven leader scale
+    const key = row.querySelector('.kv-key');
+    const value = row.querySelector('.kv-value');
+    try {
+      setLeaderMaskForRow(row);
+      gsap.set([key, value], { y: 8, opacity: 0 });
+      // start immediately and finish quickly for responsiveness
+      gsap.fromTo(row, { '--locLineScale': 0 }, { '--locLineScale': 1, duration: 0.35, ease: 'power2.out' });
+      gsap.to([key, value], { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' });
+    } catch {}
+  };
+
   const positionPaletteRow = () => {
     try {
       const container = containerRef.current;
@@ -557,8 +572,8 @@ const ThreeJSSlider = () => {
             fetchAndParseEXIF(slide.image).then((meta) => {
               setShotSettings((prev) => ({ ...prev, ...meta }));
             });
-            // Recompute leader mask for location row when locked
-            setLeaderMaskForRow(locationRowRef.current);
+            // Smooth, minimal location animation on lock
+            animateLocationRow();
           }
         }
 
@@ -616,8 +631,8 @@ const ThreeJSSlider = () => {
         });
       }
       requestAnimationFrame(() => {
-        setLeaderMaskForRow(locationRowRef.current);
         positionPaletteRow();
+        animateLocationRow();
       });
       // ripple in location row once
       const row = locationRowRef.current;

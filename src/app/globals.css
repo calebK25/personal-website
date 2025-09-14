@@ -630,10 +630,12 @@ a {
 .threejs-slider-container .location-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 900px; margin: 12px auto 8px; }
 .threejs-slider-container .location-row .kv-key { justify-self: start; }
 .threejs-slider-container .location-row .kv-value { justify-self: end; }
+/* Allow GSAP to drive a smooth line grow via CSS variable */
+.threejs-slider-container .location-row:before { transform: translateY(-50%) scaleX(var(--locLineScale, 0)); transition: none; }
 
 /* Keep palette inside gallery width and right align */
 .threejs-slider-container { position: relative; }
-.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: flex-end; visibility: hidden; }
+.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: flex-end; visibility: hidden; z-index: 5; }
 
 /* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }
@@ -706,9 +708,10 @@ a {
   max-width: 260px;
   overflow: hidden;
   vertical-align: baseline;
-  border: none;
-  padding: 0;
+  border: 1px solid rgba(0,0,0,0.25);
+  padding: 2px 6px;
   margin: 0;
+  border-radius: 2px;
 }
 
 .spotify-line {
