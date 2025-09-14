@@ -20,7 +20,6 @@ const ThreeJSSlider = () => {
   const animationIdRef = useRef(null);
   const titleRef = useRef(null);
   const titleAnimationRef = useRef(null);
-  const locationRowRef = useRef(null);
 
   // Photography images from the public/photography directory
   const photographySlides = [
@@ -32,7 +31,6 @@ const ThreeJSSlider = () => {
   ];
 
   const [currentImageTitle, setCurrentImageTitle] = useState(photographySlides[0].title);
-  const [currentLocation, setCurrentLocation] = useState(photographySlides[0].location || photographySlides[0].title);
   const [showImageTitle, setShowImageTitle] = useState(false);
   // Lightbox removed per request
   const [palette, setPalette] = useState([]); // array of {hex, r,g,b}
@@ -225,42 +223,6 @@ const ThreeJSSlider = () => {
     };
   };
 
-  // Compute leader mask holes for a single row (skip under key/value)
-  const setLeaderMaskForRow = (rowEl) => {
-    if (!rowEl) return;
-    try {
-      const key = rowEl.querySelector('.kv-key');
-      const value = rowEl.querySelector('.kv-value');
-      if (!key || !value) return;
-      const rect = rowEl.getBoundingClientRect();
-      const keyRect = key.getBoundingClientRect();
-      const valRect = value.getBoundingClientRect();
-      const width = rect.width || 1;
-      const hole1Start = ((keyRect.left - rect.left) / width) * 100;
-      const hole1End = ((keyRect.right - rect.left) / width) * 100;
-      const hole2Start = ((valRect.left - rect.left) / width) * 100;
-      const hole2End = ((valRect.right - rect.left) / width) * 100;
-      rowEl.style.setProperty('--hole1-start', `${hole1Start}%`);
-      rowEl.style.setProperty('--hole1-end', `${hole1End}%`);
-      rowEl.style.setProperty('--hole2-start', `${hole2Start}%`);
-      rowEl.style.setProperty('--hole2-end', `${hole2End}%`);
-    } catch {}
-  };
-
-  const animateLocationRow = () => {
-    const row = locationRowRef.current;
-    if (!row) return;
-    // smooth minimal: fade+slide value and GSAP-driven leader scale
-    const key = row.querySelector('.kv-key');
-    const value = row.querySelector('.kv-value');
-    try {
-      setLeaderMaskForRow(row);
-      gsap.set([key, value], { y: 8, opacity: 0 });
-      // start immediately and finish quickly for responsiveness
-      gsap.fromTo(row, { '--locLineScale': 0 }, { '--locLineScale': 1, duration: 0.35, ease: 'power2.out' });
-      gsap.to([key, value], { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' });
-    } catch {}
-  };
 
   const positionPaletteRow = () => {
     try {
@@ -271,12 +233,14 @@ const ThreeJSSlider = () => {
       if (!canvas || !paletteRow) return;
       const cr = container.getBoundingClientRect();
       const rr = canvas.getBoundingClientRect();
-      const left = rr.left - cr.left;
-      const top = rr.bottom - cr.top + 8; // 8px gap below gallery
-      const width = rr.width;
-      paletteRow.style.left = `${left}px`;
+      const top = Math.round(rr.bottom - cr.top + 8); // gap below photo
+      // Align the palette's right edge exactly with the photo's right border
+      const contentWidth = Math.round(paletteRow.scrollWidth);
+      const desiredRight = Math.round(rr.right - cr.left);
+      const desiredLeft = Math.max(0, desiredRight - contentWidth);
+      paletteRow.style.left = `${desiredLeft}px`;
       paletteRow.style.top = `${top}px`;
-      paletteRow.style.width = `${width}px`;
+      paletteRow.style.width = `${contentWidth}px`;
       paletteRow.style.right = 'auto';
       paletteRow.style.visibility = 'visible';
     } catch {}
@@ -489,7 +453,6 @@ const ThreeJSSlider = () => {
       const slide = photographySlides[indices.currentIndex];
       const newTitle = slide.title;
       setCurrentImageTitle(newTitle);
-      setCurrentLocation(slide.location || slide.title);
       // compute palette + settings from current texture image if available
       const img = texturesRef.current[indices.currentIndex]?.image;
       if (img) {
@@ -572,8 +535,6 @@ const ThreeJSSlider = () => {
             fetchAndParseEXIF(slide.image).then((meta) => {
               setShotSettings((prev) => ({ ...prev, ...meta }));
             });
-            // Smooth, minimal location animation on lock
-            animateLocationRow();
           }
         }
 
@@ -632,18 +593,7 @@ const ThreeJSSlider = () => {
       }
       requestAnimationFrame(() => {
         positionPaletteRow();
-        animateLocationRow();
       });
-      // ripple in location row once
-      const row = locationRowRef.current;
-      if (row) {
-        row.classList.remove('animate','show-key','show-value');
-        // eslint-disable-next-line no-unused-expressions
-        row.offsetWidth;
-        row.classList.add('animate');
-        setTimeout(() => row.classList.add('show-key'), 260);
-        setTimeout(() => row.classList.add('show-value'), 520);
-      }
     }, 200);
 
     // Create plane geometry
@@ -739,10 +689,7 @@ const ThreeJSSlider = () => {
         <div className="crop crop-br"></div>
         <div className="watermark">{new Date().toISOString().slice(0,10)}-PHO</div>
       </div>
-      <div ref={locationRowRef} className="kv-row with-leaders location-row" style={{ marginBottom: '8px' }}>
-        <span className="kv-key">Location</span>
-        <span className="kv-value">{currentLocation}</span>
-      </div>
+      {/* Location row removed */}
       {/* Palette row (right aligned) */}
       {palette && palette.length > 0 && (
         <div className="palette-row">
