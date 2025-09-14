@@ -17,28 +17,28 @@ const ExperienceTimeline = ({ isExiting = false }) => {
     {
       company: "Princeton IPA Lab",
       position: "AI Researcher",
-      duration: "12.01.24 - Present",
+      duration: "12.03.24 - Present",
       location: "Princeton, NJ",
       description: "Investigating hallucinations in large language models and video language models."
     },
     {
       company: "Remora Capital",
       position: "Quantitative Developer", 
-      duration: "05.01.25 - Present",
+      duration: "05.01.25 - 09.09.25",
       location: "Remote",
       description: "Working on quant firm startup."
     },
     {
       company: "MyChance",
       position: "Founding Engineer", 
-      duration: "05.01.25 - Present",
+      duration: "05.12.25 - Present",
       location: "Remote",
       description: "Building centralized AI college counselor."
     },
     {
       company: "Princeton Vision and Learning Lab", 
       position: "ML/CV Researcher",
-      duration: "09.01.25 - Present",
+      duration: "09.05.25 - Present",
       location: "Princeton, NJ",
       description: "Research advised by Erich Liang."
     }
@@ -46,7 +46,7 @@ const ExperienceTimeline = ({ isExiting = false }) => {
     {
       company: "COS226 UCA",
       position: "Undergraduate Course Assistant",
-      duration: "09.01.25 - Present",
+      duration: "09.07.25 - Present",
       location: "Princeton, NJ",
       description: "Data structures and algorithm grader."
     }
