@@ -233,9 +233,18 @@ const ThreeJSSlider = () => {
       if (!canvas || !paletteRow) return;
       const cr = container.getBoundingClientRect();
       const rr = canvas.getBoundingClientRect();
-      const top = Math.round(rr.bottom - cr.top + 8); // gap below photo
-      // Center the palette beneath the canvas
-      const contentWidth = Math.round(paletteRow.scrollWidth);
+      const top = Math.round(rr.bottom - cr.top + 4); // tighter gap below photo
+      // Ensure measurement after layout; measure intrinsic width
+      paletteRow.style.width = 'auto';
+      // Force reflow to get a reliable scrollWidth even if fonts just loaded
+      // eslint-disable-next-line no-unused-expressions
+      paletteRow.offsetWidth;
+      let contentWidth = Math.round(paletteRow.scrollWidth);
+      if (!contentWidth || contentWidth < 10) {
+        // Try again on next frame if not ready yet (e.g., fonts or reels not laid out)
+        requestAnimationFrame(() => positionPaletteRow());
+        return;
+      }
       const centerLeft = Math.round((rr.left - cr.left) + (rr.width / 2) - (contentWidth / 2));
       paletteRow.style.left = `${Math.max(0, centerLeft)}px`;
       paletteRow.style.top = `${top}px`;

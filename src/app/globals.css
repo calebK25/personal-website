@@ -112,6 +112,7 @@ a {
   display: flex;
   flex-direction: column;
   justify-content: flex-end; /* ensure bottom aligns with index */
+  align-items: flex-start; /* prevent children (spotify) from stretching full width */
 }
 
 /* Standardize tag typography and spacing across all slides */
@@ -616,7 +617,7 @@ a {
 }
 
 /* Photography UI elements */
-.palette-row { display: flex; gap: 12px; align-items: center; margin: 6px 0 12px; justify-content: center; }
+.palette-row { display: flex; gap: 12px; align-items: center; margin: 6px 0 12px; justify-content: center; flex-wrap: nowrap; white-space: nowrap; }
 .palette-swatch { display: inline-flex; align-items: center; gap: 8px; font-family: "DM Mono"; font-size: 12px; }
 .palette-swatch .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.25); box-shadow: 0 0 0 1px rgba(255,255,255,0.6) inset; transition: background-color 300ms ease; }
 .palette-swatch .hex { display: inline-block; perspective: 300px; }
@@ -635,7 +636,7 @@ a {
 
 /* Keep palette inside gallery width and right align */
 .threejs-slider-container { position: relative; }
-.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: flex-end; visibility: hidden; z-index: 5; }
+.threejs-slider-container .palette-row { position: absolute; margin: 0; justify-content: center; visibility: hidden; z-index: 5; }
 
 /* Shot settings aligned bottom-left under the gallery area */
 .shot-settings { position: relative; }
@@ -701,7 +702,7 @@ a {
 }
 
 /* Simple visualizer bars for Spotify */
-.spotify-line-container {
+.spotify-line-container, .slide-tags .spotify-container {
   display: inline-block;
   max-width: 260px;
   overflow: hidden;
