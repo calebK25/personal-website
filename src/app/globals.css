@@ -147,9 +147,10 @@ a {
 
 /* Artist tooltip */
 .artist-chip { position: relative; cursor: pointer; }
-.artist-tooltip { position: absolute; left: 50%; transform: translateX(-50%) translateY(-8px); bottom: 100%; background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease, filter 220ms ease; z-index: 10001; filter: blur(6px); }
+.artist-chip { border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 1px; }
+.artist-tooltip { position: absolute; left: 50%; transform: translateX(-50%) translateY(-8px); bottom: 100%; background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease, filter 220ms ease; z-index: 10001; filter: blur(6px); min-width: 240px; }
 .artist-chip.show-tooltip .artist-tooltip { opacity: 1; transform: translateX(-50%) translateY(-12px); filter: blur(0px); }
-.artist-tooltip-list { display: grid; gap: 6px; }
+.artist-tooltip-list { display: grid; gap: 6px; max-height: 220px; overflow: auto; }
 .artist-tooltip .row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; }
 .artist-tooltip .kv-key { text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; }
 .artist-tooltip .kv-value { opacity: 0.95; }
@@ -776,12 +777,12 @@ a {
   display: inline-block;
   max-width: 260px;
   overflow: hidden;
-  vertical-align: baseline;
-  /* remove box visuals */
+  vertical-align: middle;
   border: none;
   padding: 0;
   margin: 0;
   border-radius: 0;
+  position: relative;
 }
 
 .spotify-line {
@@ -804,11 +805,13 @@ a {
   will-change: transform;
   transition: transform 0.2s ease;
 }
+/* allow hover scroll to overflow fully, not clipped by parent */
+.slide-tags .spotify-container { overflow: visible; }
 /* Minimal playlists panel */
-.playlist-button { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; cursor: pointer; opacity: 0.8; vertical-align: middle; }
+.playlist-button { position: static; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; cursor: pointer; opacity: 0.9; vertical-align: middle; background: none; border: none; padding: 0; line-height: 1; -webkit-appearance: none; appearance: none; outline: none; }
 .playlist-button:hover { opacity: 1; }
-.playlist-dot { width: 4px; height: 4px; border-radius: 50%; background: #000; display: inline-block; }
-.playlist-panel { position: absolute; left: 0; top: 100%; margin-top: 6px; background: none; backdrop-filter: blur(8px); border: none; border-radius: 0; padding: 8px 0; box-shadow: none; font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; transform: translateY(6px); filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; z-index: 10001; min-width: 220px; }
+.playlist-dot { width: 4px; height: 4px; border-radius: 50%; background: #000; display: inline-block; vertical-align: middle; transform: translateY(-18px); }
+.playlist-panel { position: absolute; right: 0; top: 100%; margin-top: 6px; background: none; backdrop-filter: blur(8px); border: none; border-radius: 0; padding: 8px 0; box-shadow: none; font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; transform: translateY(6px); filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; z-index: 10001; min-width: 220px; }
 .playlist-panel.open { opacity: 1; transform: translateY(0); filter: blur(0px); pointer-events: auto; }
 .playlist-list { display: grid; gap: 8px; }
 .playlist-item { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }

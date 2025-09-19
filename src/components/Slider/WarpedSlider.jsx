@@ -96,8 +96,8 @@ const WarpedSlider = () => {
           if (!html.includes(rep.key)) return;
           const safeKey = rep.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const re = new RegExp(safeKey);
-          if (rep.cls.includes('artist-chip')) {
-            html = html.replace(re, `<span class="artist-chip" data-artist="${rep.data}">${rep.key}<span class="artist-tooltip">Loading…</span></span>`);
+        if (rep.cls.includes('artist-chip')) {
+          html = html.replace(re, `<span class="artist-chip" data-artist="${rep.data}">${rep.key}</span>`);
           } else if (rep.cls.includes('paper-chip')) {
             // remove inline paper mention from paragraph; collect for list
             paperEntries.push({ title: rep.key, href: rep.href, cls: rep.cls });
@@ -178,22 +178,29 @@ const WarpedSlider = () => {
     artistChips.forEach(chip => {
       let hideTimer;
       const artist = chip.getAttribute('data-artist');
-      const tooltip = chip.querySelector('.artist-tooltip');
+      let tooltip = chip.querySelector('.artist-tooltip');
+      if (!tooltip) {
+        tooltip = document.createElement('span');
+        tooltip.className = 'artist-tooltip';
+        tooltip.innerHTML = '<div class="artist-tooltip-list"></div>';
+        chip.appendChild(tooltip);
+      }
       const fetchStats = async () => {
         try {
           const res = await fetch(`/api/spotify/artist-stats?artist=${encodeURIComponent(artist)}`);
           const data = await res.json();
           if (!tooltip) return;
           if (data && data.artist) {
-            const img = data.artist.image ? `<img class="artist-img" src="${data.artist.image}" alt="${data.artist.name}" />` : '';
+            const img = data.artist.image ? `<img class=\"artist-img\" src=\"${data.artist.image}\" alt=\"${data.artist.name}\" />` : '';
+            const tracks = (data.topTracks || []).map(t => `<div class=\"row\"><span class=\"kv-key\">Track</span><span class=\"kv-value\">${t.name}</span></div>`).join('');
             tooltip.innerHTML = `
-              <div class="artist-tooltip-list">
-                <div class="row"><span class="kv-key">Artist</span><span class="kv-value">${img}${data.artist.name}</span></div>
-                <div class="row"><span class="kv-key">Top Track</span><span class="kv-value">${data.topTrack ? data.topTrack.name : '—'}</span></div>
+              <div class=\"artist-tooltip-list\">
+                <div class=\"row\"><span class=\"kv-key\">Artist</span><span class=\"kv-value\">${img}${data.artist.name}</span></div>
+                ${tracks || '<div class=\"row\"><span class=\"kv-key\">Tracks</span><span class=\"kv-value\">—</span></div>'}
               </div>
             `;
           } else {
-            tooltip.textContent = 'No data';
+            tooltip.innerHTML = '<div class="artist-tooltip-list"><div class="row"><span class="kv-key">Artist</span><span class="kv-value">No data</span></div></div>';
           }
         } catch {
           if (tooltip) tooltip.textContent = 'Error';
@@ -231,25 +238,27 @@ const WarpedSlider = () => {
     const wrapper = container.querySelector('.spotify-container');
     const line = container.querySelector('.spotify-line');
     if (!wrapper || !line) return;
-    // remove prior listeners to avoid stacking
-    const clone = line.cloneNode(true);
-    line.parentNode.replaceChild(clone, line);
-    const maxWidth = wrapper.clientWidth;
-    const measure = () => ({ w: clone.scrollWidth, max: wrapper.clientWidth });
+    // bind once per container to avoid breaking SplitText
+    if (wrapper.dataset.marqueeBound === '1') return;
+    wrapper.dataset.marqueeBound = '1';
+    // Prefer animating the SplitText line node if available
+    const inner = wrapper.querySelector('.spotify-line .line') || line;
+    const measure = () => ({ w: inner.scrollWidth, max: wrapper.clientWidth });
     const onEnter = () => {
       const { w, max } = measure();
       if (w <= max + 2) return; // no need to scroll
       const distance = w - max;
-      clone.style.transition = 'transform 0s linear';
-      clone.style.transform = 'translateX(0)';
+      inner.style.willChange = 'transform';
+      inner.style.transition = 'transform 0s linear';
+      inner.style.transform = 'translateX(0)';
       requestAnimationFrame(() => {
-        clone.style.transition = `transform ${Math.max(6, distance/30)}s linear`;
-        clone.style.transform = `translateX(-${distance}px)`;
+        inner.style.transition = `transform ${Math.max(3, distance/80)}s linear`;
+        inner.style.transform = `translateX(-${distance}px)`;
       });
     };
     const onLeave = () => {
-      clone.style.transition = 'transform 0.25s ease-out';
-      clone.style.transform = 'translateX(0)';
+      inner.style.transition = 'transform 0.2s ease-out';
+      inner.style.transform = 'translateX(0)';
     };
     wrapper.addEventListener('mouseenter', onEnter);
     wrapper.addEventListener('mouseleave', onLeave);
@@ -278,7 +287,7 @@ const WarpedSlider = () => {
       if (!panel) return;
       panel.classList.toggle('open');
       if (panel.classList.contains('open')) {
-        fetch('/api/spotify/playlists').then(r => r.json()).then(data => {
+        fetch('/api/spotify/playlists', { cache: 'no-store' }).then(r => r.json()).then(data => {
           const items = (data.playlists || []).slice(0, 12);
           list.innerHTML = items.map(pl => `
             <div class="playlist-item">
@@ -293,6 +302,20 @@ const WarpedSlider = () => {
       }
     };
     btn.onclick = togglePanel;
+
+    // Ensure dot animates with tag lines (entry)
+    const tagLine = container.querySelector('.slide-tags .line');
+    if (tagLine) {
+      // initial state
+      btn.style.opacity = '0';
+      btn.style.transform = 'translateY(-2px) translateX(-6px)';
+      // animate in after tags start animating
+      setTimeout(() => {
+        btn.style.transition = 'opacity 300ms ease, transform 300ms ease';
+        btn.style.opacity = '1';
+        btn.style.transform = 'translateY(-2px) translateX(0)';
+      }, 900);
+    }
   };
 
   const updateSpotifyInfo = async (container) => {
@@ -307,8 +330,7 @@ const WarpedSlider = () => {
       if (!response.ok) {
         const errorData = await response.json();
         if (errorData.error === 'Spotify access token not configured') {
-          // Ensure fallback text
-          p.textContent = 'Not Playing';
+          // Leave existing SplitText structure intact
           return;
         }
         throw new Error('Failed to fetch current track');
@@ -318,14 +340,15 @@ const WarpedSlider = () => {
       // Only update when actively playing to avoid breaking SplitText structure
       if (data && data.isPlaying && data.title) {
         const text = `${data.title} - ${data.artist}`;
-        p.textContent = text;
+        if (p.textContent !== text) {
+          p.textContent = text;
+        }
       } else {
-        p.textContent = 'Not Playing';
+        // Keep initial NOT PLAYING text and its SplitText wrappers
       }
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
-      // Show fallback text on error
-      p.textContent = 'Not Playing';
+      // Keep existing content; do not replace SplitText structure
       return;
     }
   };

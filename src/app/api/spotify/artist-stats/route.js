@@ -48,15 +48,31 @@ export async function GET(request) {
     const artistItem = searchData.artists?.items?.[0];
     if (!artistItem) return Response.json({ error: 'Artist not found' }, { status: 200 });
 
-    // Get user top tracks long_term and pick top for this artist
-    const topRes = await fetch('https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=long_term', {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    let topTrack = null;
-    if (topRes.ok) {
-      const topData = await topRes.json();
-      topTrack = topData.items?.find(t => t.artists?.some(a => a.id === artistItem.id));
+    // Build top tracks list for this artist from user's top tracks (long + medium term)
+    const ranges = ['long_term', 'medium_term'];
+    const seen = new Map();
+    for (const range of ranges) {
+      const res = await fetch(`https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=${range}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      (data.items || []).forEach(t => {
+        const hasArtist = t.artists?.some(a => a.id === artistItem.id);
+        if (!hasArtist) return;
+        if (!seen.has(t.id)) {
+          seen.set(t.id, {
+            id: t.id,
+            name: t.name,
+            album: t.album?.name,
+            url: t.external_urls?.spotify,
+            image: t.album?.images?.[0]?.url,
+            popularity: t.popularity ?? 0,
+          });
+        }
+      });
     }
+    const topTracks = Array.from(seen.values()).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, 10);
 
     // Build minimal stats payload
     const payload = {
@@ -68,13 +84,7 @@ export async function GET(request) {
         image: artistItem.images?.[0]?.url,
         popularity: artistItem.popularity,
       },
-      topTrack: topTrack ? {
-        id: topTrack.id,
-        name: topTrack.name,
-        album: topTrack.album?.name,
-        url: topTrack.external_urls?.spotify,
-        image: topTrack.album?.images?.[0]?.url,
-      } : null,
+      topTracks,
     };
 
     return Response.json(payload);
