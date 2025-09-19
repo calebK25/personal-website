@@ -76,8 +76,8 @@ const WarpedSlider = () => {
         { key: 'Princeton University', cls: 'hl-orange' },
         { key: 'Princeton Vision & Learning Lab', cls: 'hl-orange hl-soft-pink' },
         { key: 'Princeton IPA Lab', cls: 'hl-orange hl-soft-blue' },
-        { key: 'Jay Chou', cls: 'artist-chip', data: 'Jay Chou' },
-        { key: 'BIBI', cls: 'artist-chip', data: 'BIBI' },
+        { key: 'Jay Chou', cls: 'hl-artist' },
+        { key: 'BIBI', cls: 'hl-artist' },
         { key: 'Nondeterminism', cls: 'paper-chip hl-paper-lilac', href: 'https://arxiv.org/abs/2407.XXXXX' },
         { key: 'Jet-Nemotron', cls: 'paper-chip hl-paper-mint', href: 'https://arxiv.org/abs/2405.XXXXX' },
       ];
@@ -96,8 +96,8 @@ const WarpedSlider = () => {
           if (!html.includes(rep.key)) return;
           const safeKey = rep.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const re = new RegExp(safeKey);
-        if (rep.cls.includes('artist-chip')) {
-          html = html.replace(re, `<span class="artist-chip" data-artist="${rep.data}">${rep.key}</span>`);
+        if (rep.cls === 'hl-artist') {
+          html = html.replace(re, `<span class="hl-artist">${rep.key}</span>`);
           } else if (rep.cls.includes('paper-chip')) {
             // remove inline paper mention from paragraph; collect for list
             paperEntries.push({ title: rep.key, href: rep.href, cls: rep.cls });
@@ -115,19 +115,30 @@ const WarpedSlider = () => {
         if (!list) {
           list = document.createElement('div');
           list.className = 'papers-list';
-          const key = document.createElement('span');
-          key.className = 'papers-key';
-          key.textContent = 'cool readings';
-          const items = document.createElement('span');
-          items.className = 'papers-items';
-          list.appendChild(key);
-          list.appendChild(items);
+          const tabs = document.createElement('div');
+          tabs.className = 'papers-tabs';
+          const papersTab = document.createElement('span');
+          papersTab.className = 'papers-tab';
+          papersTab.textContent = 'cool readings';
+          const playlistsTab = document.createElement('span');
+          playlistsTab.className = 'playlists-tab';
+          playlistsTab.textContent = 'playlists';
+          tabs.appendChild(papersTab);
+          tabs.appendChild(playlistsTab);
+          const reveals = document.createElement('div');
+          reveals.className = 'papers-reveal';
+          const playlistsReveal = document.createElement('div');
+          playlistsReveal.className = 'playlists-popup';
+          list.appendChild(tabs);
+          list.appendChild(reveals);
+          list.appendChild(playlistsReveal);
           const descWrapper = desc.parentElement;
           if (descWrapper) descWrapper.appendChild(list);
         }
-        const items = list.querySelector('.papers-items');
-        if (items) {
-          items.innerHTML = '';
+        const reveals = list.querySelector('.papers-reveal');
+        const playlistsReveal = list.querySelector('.playlists-reveal');
+        if (reveals) {
+          reveals.innerHTML = '';
           toRender.forEach(pe => {
             const a = document.createElement('a');
             a.className = pe.cls;
@@ -135,8 +146,38 @@ const WarpedSlider = () => {
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             a.textContent = pe.title;
-            items.appendChild(a);
+            reveals.appendChild(a);
           });
+          const papersTab = list.querySelector('.papers-tab');
+          const playlistsTab = list.querySelector('.playlists-tab');
+          if (papersTab && playlistsTab) {
+            papersTab.onclick = () => {
+              // Toggle cool readings reveal
+              const isShown = reveals.classList.contains('show');
+              if (isShown) {
+                reveals.classList.remove('show');
+              } else {
+                reveals.classList.add('show');
+                playlistsReveal.classList.remove('show');
+              }
+            };
+            playlistsTab.onclick = async () => {
+              try {
+                const res = await fetch('/api/spotify/playlists', { cache: 'no-store' });
+                const data = await res.json();
+                const listHtml = (data.playlists || []).slice(0, 12).map(p => {
+                  const tracks = typeof p.tracks === 'number' ? `${p.tracks} tracks` : '';
+                  return `<div class=\"pl-item\"><div class=\"pl-name\">${p.name}</div><div class=\"pl-tracks\">${tracks}</div></div>`;
+                }).join('');
+                playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
+              } catch {
+                playlistsReveal.innerHTML = '<div class="pl-list">—</div>';
+              }
+              playlistsReveal.classList.add('open');
+              reveals.classList.remove('show');
+            };
+            // default hidden; user clicks to reveal
+          }
         }
       }
 
@@ -173,48 +214,7 @@ const WarpedSlider = () => {
       });
     });
 
-    // Artist hover tooltips with Spotify stats
-    const artistChips = container.querySelectorAll('.artist-chip');
-    artistChips.forEach(chip => {
-      let hideTimer;
-      const artist = chip.getAttribute('data-artist');
-      let tooltip = chip.querySelector('.artist-tooltip');
-      if (!tooltip) {
-        tooltip = document.createElement('span');
-        tooltip.className = 'artist-tooltip';
-        tooltip.innerHTML = '<div class="artist-tooltip-list"></div>';
-        chip.appendChild(tooltip);
-      }
-      const fetchStats = async () => {
-        try {
-          const res = await fetch(`/api/spotify/artist-stats?artist=${encodeURIComponent(artist)}`);
-          const data = await res.json();
-          if (!tooltip) return;
-          if (data && data.artist) {
-            const img = data.artist.image ? `<img class=\"artist-img\" src=\"${data.artist.image}\" alt=\"${data.artist.name}\" />` : '';
-            const tracks = (data.topTracks || []).map(t => `<div class=\"row\"><span class=\"kv-key\">Track</span><span class=\"kv-value\">${t.name}</span></div>`).join('');
-            tooltip.innerHTML = `
-              <div class=\"artist-tooltip-list\">
-                <div class=\"row\"><span class=\"kv-key\">Artist</span><span class=\"kv-value\">${img}${data.artist.name}</span></div>
-                ${tracks || '<div class=\"row\"><span class=\"kv-key\">Tracks</span><span class=\"kv-value\">—</span></div>'}
-              </div>
-            `;
-          } else {
-            tooltip.innerHTML = '<div class="artist-tooltip-list"><div class="row"><span class="kv-key">Artist</span><span class="kv-value">No data</span></div></div>';
-          }
-        } catch {
-          if (tooltip) tooltip.textContent = 'Error';
-        }
-      };
-      chip.addEventListener('mouseenter', () => {
-        clearTimeout(hideTimer);
-        chip.classList.add('show-tooltip');
-        fetchStats();
-      });
-      chip.addEventListener('mouseleave', () => {
-        hideTimer = setTimeout(() => chip.classList.remove('show-tooltip'), 80);
-      });
-    });
+    // Removed artist hover modal behavior per request
   };
 
   // Attach listeners to slide arrows
@@ -241,81 +241,28 @@ const WarpedSlider = () => {
     // bind once per container to avoid breaking SplitText
     if (wrapper.dataset.marqueeBound === '1') return;
     wrapper.dataset.marqueeBound = '1';
-    // Prefer animating the SplitText line node if available
-    const inner = wrapper.querySelector('.spotify-line .line') || line;
-    const measure = () => ({ w: inner.scrollWidth, max: wrapper.clientWidth });
+    // Prefer animating the SplitText line node if available; re-query on each hover to avoid stale refs
+    const getInner = () => wrapper.querySelector('.spotify-line .line') || line;
+    const measure = () => { const el = getInner(); return { w: el.scrollWidth, max: wrapper.clientWidth, el }; };
     const onEnter = () => {
-      const { w, max } = measure();
+      const { w, max, el } = measure();
       if (w <= max + 2) return; // no need to scroll
       const distance = w - max;
-      inner.style.willChange = 'transform';
-      inner.style.transition = 'transform 0s linear';
-      inner.style.transform = 'translateX(0)';
+      el.style.willChange = 'transform';
+      el.style.transition = 'transform 0s linear';
+      el.style.transform = 'translateX(0)';
       requestAnimationFrame(() => {
-        inner.style.transition = `transform ${Math.max(3, distance/80)}s linear`;
-        inner.style.transform = `translateX(-${distance}px)`;
+        el.style.transition = `transform ${Math.max(3, distance/80)}s linear`;
+        el.style.transform = `translateX(-${distance}px)`;
       });
     };
     const onLeave = () => {
-      inner.style.transition = 'transform 0.2s ease-out';
-      inner.style.transform = 'translateX(0)';
+      const el = getInner();
+      el.style.transition = 'transform 0.2s ease-out';
+      el.style.transform = 'translateX(0)';
     };
     wrapper.addEventListener('mouseenter', onEnter);
     wrapper.addEventListener('mouseleave', onLeave);
-
-    // Build playlists UI if missing
-    let btn = wrapper.querySelector('.playlist-button');
-    let panel = wrapper.querySelector('.playlist-panel');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'playlist-button';
-      btn.setAttribute('aria-label', 'Playlists');
-      btn.setAttribute('title', 'Playlists');
-      btn.innerHTML = `<span class="playlist-dot"></span>`;
-      wrapper.appendChild(btn);
-    }
-    if (!panel) {
-      panel = document.createElement('div');
-      panel.className = 'playlist-panel';
-      panel.innerHTML = `<div class="playlist-list"></div>`;
-      wrapper.appendChild(panel);
-    }
-
-    const list = panel.querySelector('.playlist-list');
-    const togglePanel = () => {
-      if (!panel) return;
-      panel.classList.toggle('open');
-      if (panel.classList.contains('open')) {
-        fetch('/api/spotify/playlists', { cache: 'no-store' }).then(r => r.json()).then(data => {
-          const items = (data.playlists || []).slice(0, 12);
-          list.innerHTML = items.map(pl => `
-            <div class="playlist-item">
-              <img class="playlist-thumb" src="${pl.image || ''}" alt="" />
-              <a class="playlist-name" href="${pl.url || '#'}" target="_blank" rel="noopener noreferrer">${pl.name}</a>
-              <span class="playlist-meta">${pl.tracks}</span>
-            </div>
-          `).join('');
-        }).catch(() => {
-          list.innerHTML = '<div class="playlist-item">Failed to load</div>';
-        });
-      }
-    };
-    btn.onclick = togglePanel;
-
-    // Ensure dot animates with tag lines (entry)
-    const tagLine = container.querySelector('.slide-tags .line');
-    if (tagLine) {
-      // initial state
-      btn.style.opacity = '0';
-      btn.style.transform = 'translateY(-2px) translateX(-6px)';
-      // animate in after tags start animating
-      setTimeout(() => {
-        btn.style.transition = 'opacity 300ms ease, transform 300ms ease';
-        btn.style.opacity = '1';
-        btn.style.transform = 'translateY(-2px) translateX(0)';
-      }, 900);
-    }
   };
 
   const updateSpotifyInfo = async (container) => {
@@ -727,6 +674,44 @@ const WarpedSlider = () => {
                 newContent.offsetWidth;
                 // trigger all highlights together after desc reveal
                 all.forEach(s => s.classList.add('hl-show'));
+
+                // Ensure papers/playlists tabs are visible and wired on re-entry
+                const list = newContent.querySelector('.papers-list');
+                if (list) {
+                  list.classList.add('papers-in');
+                  const papersTab = list.querySelector('.papers-tab');
+                  const playlistsTab = list.querySelector('.playlists-tab');
+                  const reveals = list.querySelector('.papers-reveal');
+                  const playlistsReveal = list.querySelector('.playlists-reveal');
+                  if (papersTab && !papersTab.dataset.bound) {
+                    papersTab.dataset.bound = '1';
+                    papersTab.onclick = () => {
+                      const isShown = reveals && reveals.classList.contains('show');
+                      if (reveals) {
+                        if (isShown) reveals.classList.remove('show');
+                        else {
+                          reveals.classList.add('show');
+                          if (playlistsReveal) playlistsReveal.classList.remove('show');
+                        }
+                      }
+                    };
+                  }
+                  if (playlistsTab && !playlistsTab.dataset.bound) {
+                    playlistsTab.dataset.bound = '1';
+                    playlistsTab.onclick = async () => {
+                      try {
+                        const res = await fetch('/api/spotify/playlists', { cache: 'no-store' });
+                        const data = await res.json();
+                        if (playlistsReveal) {
+                          const names = (data.playlists || []).map(p => p.name).slice(0, 10).join(' · ');
+                          playlistsReveal.textContent = names || '—';
+                          playlistsReveal.classList.add('show');
+                        }
+                        if (reveals) reveals.classList.remove('show');
+                      } catch {}
+                    };
+                  }
+                }
               }, null, ">-=0.02");
             }
           }

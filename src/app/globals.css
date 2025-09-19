@@ -167,12 +167,21 @@ a {
 .hl-paper-mint::before { background: #DDF2EA; }
 
 /* Papers list under description */
-.papers-list { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; }
-.papers-list .papers-key { cursor: pointer; letter-spacing: 0.06em; opacity: 0.75; font-family: var(--font-geist-mono), monospace; font-size: 12px; border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 2px; }
-.papers-list .papers-items { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; max-height: 0; opacity: 0; filter: blur(6px); overflow: hidden; transition: opacity 240ms ease, filter 240ms ease, max-height 260ms ease; }
-.papers-list .papers-items a { text-decoration: none; border-bottom: 1px dotted rgba(0,0,0,0.3); padding-bottom: 2px; }
+.papers-list { position: relative; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; }
+.papers-tabs { display: inline-flex; gap: 16px; justify-content: center; align-items: center; }
+.papers-tab, .playlists-tab { cursor: pointer; letter-spacing: 0.06em; opacity: 0.85; font-family: var(--font-geist-mono), monospace; font-size: 12px; border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 2px; }
+.papers-items, .playlists-items { display: none; }
 .papers-list.papers-in { opacity: 1; transform: translateY(0); filter: blur(0px); }
-.papers-list.open .papers-items { max-height: 120px; opacity: 1; filter: blur(0px); }
+.papers-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(4px); transition: opacity 220ms ease, filter 220ms ease, transform 220ms ease; text-align: center; }
+.papers-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); }
+
+/* Playlists popup */
+.playlists-popup { position: absolute; top: 100%; left: 50%; transform: translate(-50%, 6px); background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; min-width: 260px; max-width: 80vw; max-height: 50vh; overflow: auto; opacity: 0; filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; text-align: left; }
+.playlists-popup.open { opacity: 1; filter: blur(0px); transform: translate(-50%, 0); pointer-events: auto; }
+.pl-list { display: grid; gap: 8px; }
+.pl-item { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.pl-name { font-weight: 600; }
+.pl-tracks { opacity: 0.75; }
 .slide-info {
   position: absolute;
   left: 0;
@@ -807,17 +816,7 @@ a {
 }
 /* allow hover scroll to overflow fully, not clipped by parent */
 .slide-tags .spotify-container { overflow: visible; }
-/* Minimal playlists panel */
-.playlist-button { position: static; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; cursor: pointer; opacity: 0.9; vertical-align: middle; background: none; border: none; padding: 0; line-height: 1; -webkit-appearance: none; appearance: none; outline: none; }
-.playlist-button:hover { opacity: 1; }
-.playlist-dot { width: 4px; height: 4px; border-radius: 50%; background: #000; display: inline-block; vertical-align: middle; transform: translateY(-18px); }
-.playlist-panel { position: absolute; right: 0; top: 100%; margin-top: 6px; background: none; backdrop-filter: blur(8px); border: none; border-radius: 0; padding: 8px 0; box-shadow: none; font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; transform: translateY(6px); filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; z-index: 10001; min-width: 220px; }
-.playlist-panel.open { opacity: 1; transform: translateY(0); filter: blur(0px); pointer-events: auto; }
-.playlist-list { display: grid; gap: 8px; }
-.playlist-item { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
-.playlist-thumb { width: 20px; height: 20px; object-fit: cover; border-radius: 3px; background: #eee; }
-.playlist-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.playlist-meta { opacity: 0.6; }
+/* Removed dot/modal playlist UI */
 /* Remove CSS animation; JS-driven marquee will handle precise widths */
 
 @media (max-width: 768px) {
