@@ -174,8 +174,8 @@ const WarpedSlider = () => {
               try {
                 const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
                 const data = await res.json();
-                const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join('');
-                playlistsReveal.innerHTML = `<div class=\"pl-list\" style=\"text-align:center\">${listHtml || '—'}</div>`;
+                const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join(' ');
+                playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
               } catch {
                 playlistsReveal.innerHTML = '<div class="pl-list">—</div>';
               }
@@ -729,8 +729,8 @@ const WarpedSlider = () => {
                         const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
                         const data = await res.json();
                         if (playlistsReveal) {
-                          const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join('');
-                          playlistsReveal.innerHTML = `<div class=\"pl-list\" style=\"text-align:center\">${listHtml || '—'}</div>`;
+                          const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join(' ');
+                          playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
                           playlistsReveal.classList.add('show');
                         }
                         if (reveals) reveals.classList.remove('show');

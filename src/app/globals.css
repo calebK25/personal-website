@@ -177,13 +177,13 @@ a {
 .papers-reveal.show { pointer-events: auto; }
 
 /* Cool songs reveal mirrors papers */
-.playlists-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); text-align: center; pointer-events: none; will-change: opacity, transform, filter; }
+.playlists-reveal { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); pointer-events: none; will-change: opacity, transform, filter; }
 .playlists-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); pointer-events: auto; }
 
 /* Staggered children for smoother reveal */
 .papers-reveal a,
 .playlists-reveal .pl-item,
-.playlists-reveal a { opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); display: inline-block; }
+.playlists-reveal a { opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); display: inline-flex; }
 .papers-reveal.show a,
 .playlists-reveal.show .pl-item,
 .playlists-reveal.show a { opacity: 1; filter: blur(0); transform: translateY(0); }
@@ -201,10 +201,13 @@ a {
 /* Playlists popup */
 .playlists-popup { position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -6px); background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; min-width: 260px; max-width: 80vw; max-height: 50vh; overflow: auto; opacity: 0; filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; text-align: left; }
 .playlists-popup.open { opacity: 1; filter: blur(0px); transform: translate(-50%, 0); pointer-events: auto; }
-.pl-list { display: grid; gap: 8px; }
-.pl-item { display: grid; grid-template-columns: 1fr; gap: 4px; }
-.pl-name { font-weight: 600; }
+.pl-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.pl-item { display: inline-flex; align-items: center; }
+.pl-name { font-weight: 500; }
 .pl-tracks { opacity: 0.75; }
+
+/* Make song chips small and inline like papers */
+.playlists-reveal .paper-chip { font-size: 11px; opacity: 0.85; border-bottom: 1px dotted rgba(0,0,0,0.35); }
 .slide-info {
   position: absolute;
   left: 0;
