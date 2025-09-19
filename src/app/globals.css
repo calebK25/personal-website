@@ -176,7 +176,7 @@ a {
 .papers-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); }
 
 /* Playlists popup */
-.playlists-popup { position: absolute; top: 100%; left: 50%; transform: translate(-50%, 6px); background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; min-width: 260px; max-width: 80vw; max-height: 50vh; overflow: auto; opacity: 0; filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; text-align: left; }
+.playlists-popup { position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -6px); background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; min-width: 260px; max-width: 80vw; max-height: 50vh; overflow: auto; opacity: 0; filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; text-align: left; }
 .playlists-popup.open { opacity: 1; filter: blur(0px); transform: translate(-50%, 0); pointer-events: auto; }
 .pl-list { display: grid; gap: 8px; }
 .pl-item { display: grid; grid-template-columns: 1fr; gap: 4px; }
@@ -798,7 +798,7 @@ a {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip; /* clip by default; hover marquee reveals full text */
   max-width: 100%;
   font-family: "DM Mono";
   font-size: 0.9rem;
@@ -815,7 +815,7 @@ a {
   transition: transform 0.2s ease;
 }
 /* allow hover scroll to overflow fully, not clipped by parent */
-.slide-tags .spotify-container { overflow: visible; }
+.slide-tags .spotify-container { overflow: hidden; }
 /* Removed dot/modal playlist UI */
 /* Remove CSS animation; JS-driven marquee will handle precise widths */
 

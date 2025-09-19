@@ -71,6 +71,14 @@ const WarpedSlider = () => {
     try {
       const desc = container.querySelector('.slide-description p');
       if (!desc) return;
+      // Only show on About Me (slide index 0)
+      const host = container.closest('.slider-content') || container;
+      const isAbout = host && host.getAttribute('data-slide-index') === '0';
+      const existingList = container.querySelector('.papers-list');
+      if (!isAbout) {
+        if (existingList) existingList.remove();
+        return;
+      }
       const text = desc.textContent || '';
       const replacements = [
         { key: 'Princeton University', cls: 'hl-orange' },
@@ -247,7 +255,8 @@ const WarpedSlider = () => {
     const onEnter = () => {
       const { w, max, el } = measure();
       if (w <= max + 2) return; // no need to scroll
-      const distance = w - max;
+      // Scroll the excess width plus a small pad so the end becomes visible but stays within container
+      const distance = Math.min(w - max + 12, w - max + 12);
       el.style.willChange = 'transform';
       el.style.transition = 'transform 0s linear';
       el.style.transform = 'translateX(0)';
