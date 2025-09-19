@@ -136,7 +136,7 @@ const WarpedSlider = () => {
           if (descWrapper) descWrapper.appendChild(list);
         }
         const reveals = list.querySelector('.papers-reveal');
-        const playlistsReveal = list.querySelector('.playlists-reveal');
+        const playlistsReveal = list.querySelector('.playlists-popup');
         if (reveals) {
           reveals.innerHTML = '';
           toRender.forEach(pe => {
@@ -158,7 +158,7 @@ const WarpedSlider = () => {
                 reveals.classList.remove('show');
               } else {
                 reveals.classList.add('show');
-                playlistsReveal.classList.remove('show');
+                if (playlistsReveal) playlistsReveal.classList.remove('open');
               }
             };
             playlistsTab.onclick = async () => {
@@ -173,7 +173,7 @@ const WarpedSlider = () => {
               } catch {
                 playlistsReveal.innerHTML = '<div class="pl-list">—</div>';
               }
-              playlistsReveal.classList.add('open');
+              if (playlistsReveal) playlistsReveal.classList.add('open');
               reveals.classList.remove('show');
             };
             // default hidden; user clicks to reveal
