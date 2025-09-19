@@ -945,8 +945,8 @@ a {
 .exp-key-row { position: absolute; right: 1.5rem; top: 2.25rem; display: flex; gap: 14px; align-items: center; font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0.8; }
 .exp-key-row .key-item { display: inline-flex; align-items: center; gap: 6px; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-left: 6px; }
-.status-progress { background: #F3E9A8; } /* muted pastel yellow */
-.status-complete { background: #CFE7C9; } /* muted pastel green */
+.status-progress { background: #E6D37C; } /* darker muted pastel yellow */
+.status-complete { background: #A9D4A1; } /* darker muted pastel green */
 
 .with-leaders { position: relative; }
 .with-leaders:before {
