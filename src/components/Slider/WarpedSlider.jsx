@@ -136,7 +136,7 @@ const WarpedSlider = () => {
           const reveals = document.createElement('div');
           reveals.className = 'papers-reveal';
           const playlistsReveal = document.createElement('div');
-          playlistsReveal.className = 'playlists-popup';
+          playlistsReveal.className = 'playlists-reveal';
           list.appendChild(tabs);
           list.appendChild(reveals);
           list.appendChild(playlistsReveal);
@@ -169,19 +169,24 @@ const WarpedSlider = () => {
                 if (playlistsReveal) playlistsReveal.classList.remove('open');
               }
             };
+            playlistsTab.textContent = 'cool songs';
             playlistsTab.onclick = async () => {
               try {
-                const res = await fetch('/api/spotify/playlists', { cache: 'no-store' });
+                const res = await fetch('/api/spotify/artist-stats?artist=__top__', { cache: 'no-store' });
                 const data = await res.json();
-                const listHtml = (data.playlists || []).slice(0, 12).map(p => {
-                  const tracks = typeof p.tracks === 'number' ? `${p.tracks} tracks` : '';
-                  return `<div class=\"pl-item\"><div class=\"pl-name\">${p.name}</div><div class=\"pl-tracks\">${tracks}</div></div>`;
-                }).join('');
+                // Fallback: if not supported, use now-playing endpoint name/artist as placeholder
+                let listHtml = '';
+                if (Array.isArray(data.topTracks) && data.topTracks.length > 0) {
+                  listHtml = data.topTracks.slice(0,5).map(t => `<div class=\"pl-item\">${t.name}</div>`).join('');
+                } else {
+                  const np = await fetch('/api/spotify/now-playing').then(r=>r.json()).catch(()=>null);
+                  if (np && np.title) listHtml = `<div class=\"pl-item\">${np.title} - ${np.artist||''}</div>`;
+                }
                 playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
               } catch {
                 playlistsReveal.innerHTML = '<div class="pl-list">—</div>';
               }
-              if (playlistsReveal) playlistsReveal.classList.add('open');
+              playlistsReveal.classList.add('show');
               reveals.classList.remove('show');
             };
             // default hidden; user clicks to reveal
@@ -296,8 +301,9 @@ const WarpedSlider = () => {
       // Only update when actively playing to avoid breaking SplitText structure
       if (data && data.isPlaying && data.title) {
         const text = `${data.title} - ${data.artist}`;
-        if (p.textContent !== text) {
-          p.textContent = text;
+        const lineEl = p.querySelector('.line') || p;
+        if (lineEl.textContent !== text) {
+          lineEl.textContent = text;
         }
       } else {
         // Keep initial NOT PLAYING text and its SplitText wrappers
