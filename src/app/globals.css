@@ -135,15 +135,15 @@ a {
   z-index: -1;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .hl-orange.hl-show::before { transform: scaleX(1); }
 
 /* Alternate highlight tones */
 .hl-soft-pink::before { background: #E9CDD5; }
 .hl-soft-blue::before { background: #DDE6F6; }
-/* Make lab highlights faster */
-.hl-soft-pink::before, .hl-soft-blue::before { transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+/* Lab highlights — a bit slower and more gradual */
+.hl-soft-pink::before, .hl-soft-blue::before { transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1); }
 
 /* Artist tooltip */
 .artist-chip { position: relative; cursor: pointer; }
@@ -167,18 +167,36 @@ a {
 .hl-paper-mint::before { background: #DDF2EA; }
 
 /* Papers list under description */
-.papers-list { position: relative; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; }
+.papers-list { position: relative; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); }
 .papers-tabs { display: inline-flex; gap: 16px; justify-content: center; align-items: center; }
 .papers-tab, .playlists-tab { cursor: pointer; letter-spacing: 0.06em; opacity: 0.85; font-family: var(--font-geist-mono), monospace; font-size: 12px; border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 2px; }
 .papers-items, .playlists-items { display: none; }
 .papers-list.papers-in { opacity: 1; transform: translateY(0); filter: blur(0px); }
-.papers-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(4px); transition: opacity 220ms ease, filter 220ms ease, transform 220ms ease; text-align: center; pointer-events: none; }
+.papers-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); text-align: center; pointer-events: none; will-change: opacity, transform, filter; }
 .papers-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); }
 .papers-reveal.show { pointer-events: auto; }
 
 /* Cool songs reveal mirrors papers */
-.playlists-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(4px); transition: opacity 220ms ease, filter 220ms ease, transform 220ms ease; text-align: center; pointer-events: none; }
+.playlists-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); text-align: center; pointer-events: none; will-change: opacity, transform, filter; }
 .playlists-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); pointer-events: auto; }
+
+/* Staggered children for smoother reveal */
+.papers-reveal a,
+.playlists-reveal .pl-item,
+.playlists-reveal a { opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); display: inline-block; }
+.papers-reveal.show a,
+.playlists-reveal.show .pl-item,
+.playlists-reveal.show a { opacity: 1; filter: blur(0); transform: translateY(0); }
+
+/* Simple nth-child stagger (first 8 items) */
+.papers-reveal.show a:nth-child(1), .playlists-reveal.show .pl-item:nth-child(1) { transition-delay: 0ms; }
+.papers-reveal.show a:nth-child(2), .playlists-reveal.show .pl-item:nth-child(2) { transition-delay: 40ms; }
+.papers-reveal.show a:nth-child(3), .playlists-reveal.show .pl-item:nth-child(3) { transition-delay: 80ms; }
+.papers-reveal.show a:nth-child(4), .playlists-reveal.show .pl-item:nth-child(4) { transition-delay: 120ms; }
+.papers-reveal.show a:nth-child(5), .playlists-reveal.show .pl-item:nth-child(5) { transition-delay: 160ms; }
+.papers-reveal.show a:nth-child(6), .playlists-reveal.show .pl-item:nth-child(6) { transition-delay: 200ms; }
+.papers-reveal.show a:nth-child(7), .playlists-reveal.show .pl-item:nth-child(7) { transition-delay: 240ms; }
+.papers-reveal.show a:nth-child(8), .playlists-reveal.show .pl-item:nth-child(8) { transition-delay: 280ms; }
 
 /* Playlists popup */
 .playlists-popup { position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -6px); background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; min-width: 260px; max-width: 80vw; max-height: 50vh; overflow: auto; opacity: 0; filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; text-align: left; }
@@ -201,7 +219,7 @@ a {
 /* Slight per-slide vertical tuning to match visual baseline */
 .slider-content[data-slide-index="0"] .slide-tags { transform: translateY(20px); }
 /* Lock About slide header to exact baseline to prevent drift across rebuilds */
-.slider-content[data-slide-index="0"] .slide-header { bottom: 2rem; top: auto; transform: translate(-50%, 0%); }
+.slider-content[data-slide-index="0"] .slide-header { bottom: 0.5rem; top: auto; transform: translate(-50%, 0%); }
 
 .slide-tags {
   display: flex;
@@ -621,7 +639,7 @@ a {
 /* Centered name + avatar wrapper */
 .profile-stats-container {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100%;

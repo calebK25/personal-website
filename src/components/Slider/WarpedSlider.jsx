@@ -172,17 +172,10 @@ const WarpedSlider = () => {
             playlistsTab.textContent = 'cool songs';
             playlistsTab.onclick = async () => {
               try {
-                const res = await fetch('/api/spotify/artist-stats?artist=__top__', { cache: 'no-store' });
+                const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
                 const data = await res.json();
-                // Fallback: if not supported, use now-playing endpoint name/artist as placeholder
-                let listHtml = '';
-                if (Array.isArray(data.topTracks) && data.topTracks.length > 0) {
-                  listHtml = data.topTracks.slice(0,5).map(t => `<div class=\"pl-item\">${t.name}</div>`).join('');
-                } else {
-                  const np = await fetch('/api/spotify/now-playing').then(r=>r.json()).catch(()=>null);
-                  if (np && np.title) listHtml = `<div class=\"pl-item\">${np.title} - ${np.artist||''}</div>`;
-                }
-                playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
+                const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join('');
+                playlistsReveal.innerHTML = `<div class=\"pl-list\" style=\"text-align:center\">${listHtml || '—'}</div>`;
               } catch {
                 playlistsReveal.innerHTML = '<div class="pl-list">—</div>';
               }
@@ -518,6 +511,7 @@ const WarpedSlider = () => {
       }
     }
 
+    // Delay slide switch until current content fully fades
     timeline.call(
       () => {
         const newContent = createSlideElement(slides[nextIndex], nextIndex);
