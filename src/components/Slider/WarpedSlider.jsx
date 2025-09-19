@@ -331,7 +331,7 @@ const WarpedSlider = () => {
     if (slideIndex === 0) {
       fullNameHTML = `
         <div class="full-name">
-          <h1>Caleb Kha-Uong.</h1>
+          <h1>Caleb Kha-Uong<span class="name-dot">.</span></h1>
         </div>
       `;
     }
@@ -348,33 +348,33 @@ const WarpedSlider = () => {
       ` : ''}
       
       <div class="slide-header">
-        <div class="slide-title"><h1>${slideData.slideTitle}</h1></div>
-        <div class="slide-description">
-          <p>${slideData.slideDescription}</p>
+      <div class="slide-title"><h1>${slideData.slideTitle}</h1></div>
+      <div class="slide-description">
+        <p>${slideData.slideDescription}</p>
         </div>
       </div>
       <div class="slide-info">
-        <div class="slide-tags">
-          <p>${Number(slideIndex) === 0 ? 'SOCIALS' : Number(slideIndex) === 1 ? 'INTERESTS' : Number(slideIndex) === 2 ? 'LEARNING' : Number(slideIndex) === 3 ? 'GEAR' : 'TAGS'}</p>
-          ${slideIndex === 0 ? 
-            '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
-            '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
-            '<p class="social-link" data-url="/resume">Resume</p>' +
+      <div class="slide-tags">
+        <p>${Number(slideIndex) === 0 ? 'SOCIALS' : Number(slideIndex) === 1 ? 'INTERESTS' : Number(slideIndex) === 2 ? 'LEARNING' : Number(slideIndex) === 3 ? 'GEAR' : 'TAGS'}</p>
+        ${slideIndex === 0 ? 
+                     '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
+           '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
+           '<p class="social-link" data-url="/resume">Resume</p>' +
             '<div class="spotify-container"><p class="spotify-line">NOT PLAYING</p></div>'
           : 
-            slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
-          }
-        </div>
+          slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
+        }
+      </div>
         <div class="slide-index-group">
           <button class="slide-arrow-btn" data-dir="prev" aria-label="Previous">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="slide-index-inner">
-            <div class="slide-index-wrapper">
-              <p>${(slideIndex + 1).toString().padStart(2, "0")}</p>
-              <p>/</p>
-              <p>${slides.length.toString().padStart(2, "0")}</p>
-            </div>
+              <div class="slide-index-wrapper">
+          <p>${(slideIndex + 1).toString().padStart(2, "0")}</p>
+          <p>/</p>
+          <p>${slides.length.toString().padStart(2, "0")}</p>
+        </div>
           </div>
           <button class="slide-arrow-btn" data-dir="next" aria-label="Next">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -563,6 +563,12 @@ const WarpedSlider = () => {
             }
           }
 
+          // Set initial state for the trailing period so it can bounce in
+          const nameDotEl = newContent.querySelector('.full-name .name-dot');
+          if (nameDotEl) {
+            gsap.set(nameDotEl, { y: -24, scale: 0.6, opacity: 0, transformOrigin: '50% 100%' });
+          }
+
           // Only set animation for elements that exist and are valid
           const elementsToAnimate = [];
           if (newTitleWords && newTitleWords.length > 0) {
@@ -634,7 +640,7 @@ const WarpedSlider = () => {
             const validTitleWords = Array.from(newTitleWords).filter(el => el && el.nodeType === 1);
             if (validTitleWords.length > 0) {
               timeline.to(validTitleWords, {
-                y: "0%",
+              y: "0%",
                 opacity: 1,
                 duration: 1.1,
                 ease: "power3.out",
@@ -658,6 +664,16 @@ const WarpedSlider = () => {
                 filter: 'blur(0px)',
               }, 0.8);
             }
+          }
+
+          // Bounce the trailing period into place after the name appears
+          const nameDot = newContent.querySelector('.full-name .name-dot');
+          if (nameDot) {
+            timeline.fromTo(nameDot,
+              { y: -24, scale: 0.6, opacity: 0, transformOrigin: '50% 100%' },
+              { y: 0, scale: 1, opacity: 1, duration: 1.15, ease: 'elastic.out(1.2, 0.35)' },
+              '>-0.05'
+            );
           }
 
           // Animate description lines
@@ -707,13 +723,14 @@ const WarpedSlider = () => {
                   }
                   if (playlistsTab && !playlistsTab.dataset.bound) {
                     playlistsTab.dataset.bound = '1';
+                    playlistsTab.textContent = 'cool songs';
                     playlistsTab.onclick = async () => {
                       try {
-                        const res = await fetch('/api/spotify/playlists', { cache: 'no-store' });
+                        const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
                         const data = await res.json();
                         if (playlistsReveal) {
-                          const names = (data.playlists || []).map(p => p.name).slice(0, 10).join(' · ');
-                          playlistsReveal.textContent = names || '—';
+                          const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join('');
+                          playlistsReveal.innerHTML = `<div class=\"pl-list\" style=\"text-align:center\">${listHtml || '—'}</div>`;
                           playlistsReveal.classList.add('show');
                         }
                         if (reveals) reveals.classList.remove('show');
@@ -748,7 +765,7 @@ const WarpedSlider = () => {
           if (newCounterLines && newCounterLines.length > 0) {
             timeline.to(newCounterLines, {
               y: "0%",
-              opacity: 1,
+                opacity: 1,
               duration: 1,
               ease: "power4.out",
               stagger: 0.1,
@@ -766,7 +783,7 @@ const WarpedSlider = () => {
               opacity: 1,
               duration: 0.6,
               stagger: 0.1,
-              ease: "power2.out",
+                ease: "power2.out",
             }, 0.95);
           }
 
@@ -917,11 +934,15 @@ const WarpedSlider = () => {
     const tagLines = content.querySelectorAll(".slide-tags .line");
     const counterLines = content.querySelectorAll(".slide-index-wrapper .line");
     const fullNameWords = content.querySelectorAll(".full-name .word");
+  const nameDotInitial = content.querySelector('.full-name .name-dot');
     const fromToRows = content.querySelectorAll(".fromto .ft-row");
     const fromTo = content.querySelector('.fromto');
 
-    // Set initial state with blur but hidden to avoid pre-appearance glow
-    gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWords], { y: "100%", filter: 'blur(6px)', opacity: 0 });
+  // Set initial state with blur but hidden to avoid pre-appearance glow
+  gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWords], { y: "100%", filter: 'blur(6px)', opacity: 0 });
+  if (nameDotInitial) {
+    gsap.set(nameDotInitial, { y: -36, scale: 0.5, opacity: 0, transformOrigin: '50% 100%' });
+  }
     if (fromToRows.length > 0) {
       gsap.set(fromToRows, { opacity: 0 });
       if (fromTo) {
@@ -993,6 +1014,11 @@ const WarpedSlider = () => {
     if (fullNameWords.length > 0) {
       gsap.to(fullNameWords, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.1 });
     }
+
+  // Bounce the trailing period on initial entry as well
+  if (nameDotInitial) {
+    gsap.to(nameDotInitial, { y: 0, scale: 1, opacity: 1, duration: 1.25, ease: 'elastic.out(1.3, 0.32)', delay: 1.22 });
+  }
 
     // Animate From/To rows after tags
     if (fromToRows.length > 0) {
@@ -1205,8 +1231,8 @@ const WarpedSlider = () => {
     const initialContent = slider.querySelector(".slider-content");
     if (initialContent) {
       addPrincetonHighlight(initialContent);
-      processTextElements(initialContent);
-      setupSocialLinks(initialContent);
+          processTextElements(initialContent);
+    setupSocialLinks(initialContent);
       setupSlideControls(initialContent);
       setupSpotifyMarquee(initialContent);
       // Prepare full-name words
@@ -1217,7 +1243,7 @@ const WarpedSlider = () => {
       // Update the text after animation completes to avoid early entrance.
       setTimeout(() => {
         // Only update Spotify here; highlight timing is controlled via GSAP timeline
-        updateSpotifyInfo(initialContent);
+    updateSpotifyInfo(initialContent);
       }, 1100);
     }
 
@@ -1302,6 +1328,8 @@ const WarpedSlider = () => {
         }
       }
 
+      // Experience list no longer scroll-captured; remove special-case
+
       // Otherwise, handle slide change normally
       e.preventDefault();
       if (e.deltaY > 0) {
@@ -1336,7 +1364,7 @@ const WarpedSlider = () => {
           <div className="profile-stats-container">
             {/* Full Name with Didot styling for B and G */}
             <div className="full-name">
-              <h1>Caleb Kha-Uong.</h1>
+              <h1>Caleb Kha-Uong<span className="name-dot">.</span></h1>
             </div>
             
             <div className="profile-container">
@@ -1348,32 +1376,32 @@ const WarpedSlider = () => {
         )}
         {/* From/To removed per request */}
         <div className="slide-header">
-          <div className="slide-title">
-            <h1>{slides[0].slideTitle}</h1>
-          </div>
-          <div className="slide-description">
-            <p>{slides[0].slideDescription}</p>
+        <div className="slide-title">
+          <h1>{slides[0].slideTitle}</h1>
+        </div>
+        <div className="slide-description">
+          <p>{slides[0].slideDescription}</p>
           </div>
         </div>
         <div className="slide-info">
-          <div className="slide-tags">
-            <p>SOCIALS</p>
-            <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
-            <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
-            <p className="social-link" data-url="/resume">Resume</p>
-            <div className="spotify-container">
+      <div className="slide-tags">
+           <p>SOCIALS</p>
+           <p className="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>
+           <p className="social-link" data-url="https://github.com/calebK25">GitHub</p>
+           <p className="social-link" data-url="/resume">Resume</p>
+           <div className="spotify-container">
               <p className="spotify-line">NOT PLAYING</p>
-            </div>
-          </div>
+           </div>
+         </div>
           <div className="slide-index-group">
             <button className="slide-arrow-btn" aria-label="Previous" onClick={() => handleSlideChange('prev')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 6l-6 6 6 6" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
             <div className="slide-index-inner">
-              <div className="slide-index-wrapper">
-                <p>01</p>
-                <p>/</p>
-                <p>{slides.length.toString().padStart(2, "0")}</p>
+        <div className="slide-index-wrapper">
+          <p>01</p>
+          <p>/</p>
+          <p>{slides.length.toString().padStart(2, "0")}</p>
               </div>
             </div>
             <button className="slide-arrow-btn" aria-label="Next" onClick={() => handleSlideChange('next')}>

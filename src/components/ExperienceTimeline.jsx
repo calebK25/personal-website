@@ -49,6 +49,20 @@ const ExperienceTimeline = ({ isExiting = false }) => {
       duration: "09.07.25 - Present",
       location: "Princeton, NJ",
       description: "Data structures and algorithm grader."
+    },
+    {
+      company: "Hoagie Club",
+      position: "Software Developer",
+      duration: `09.13.25 - Present`,
+      location: "Princeton, NJ",
+      description: "Working under the HoagieMeal team."
+    },
+    {
+      company: "HackPrinceton",
+      position: "Software Developer",
+      duration: `09.17.25 - Present`,
+      location: "Princeton, NJ",
+      description: "Working on the development team for Princeton's premiere hackathon."
     }
   ];
 
@@ -70,7 +84,7 @@ const ExperienceTimeline = ({ isExiting = false }) => {
           i += 1;
         } else {
           hold += 1;
-          if (hold > 6) { // shorter hold
+          if (hold > 10) { // longer hold before deleting
             direction = -1;
             hold = 0;
           }
@@ -84,7 +98,7 @@ const ExperienceTimeline = ({ isExiting = false }) => {
         }
       }
     };
-    const id = setInterval(tick, 95); // slightly faster typing
+    const id = setInterval(tick, 140); // slightly slower typing
     return () => clearInterval(id);
   }, []);
 
@@ -105,6 +119,8 @@ const ExperienceTimeline = ({ isExiting = false }) => {
     return () => clearTimeout(start);
   }, []);
 
+  // Removed infinite scroll; simple static list
+
   return (
     <div className={`experience-list small ${isExiting ? 'timeline-exit' : ''} paper`} ref={listRef}>
       <div className="receipt-overlay">
@@ -120,6 +136,10 @@ const ExperienceTimeline = ({ isExiting = false }) => {
         <span className="kv-key">Section</span>
         <span className="kv-value">Experience</span>
       </div>
+      <div className="exp-key-row" aria-label="experience key">
+        <span className="key-item"><span className="status-dot status-progress"></span>in progress</span>
+        <span className="key-item"><span className="status-dot status-complete"></span>completed</span>
+      </div>
       <ul className="exp-items">
         <li className="exp-item more">
           <div className="exp-date">{todayStr}</div>
@@ -131,8 +151,15 @@ const ExperienceTimeline = ({ isExiting = false }) => {
           <li key={index} className="exp-item">
             <div className="exp-date">{exp.duration || '—'}</div>
             <div className="exp-body">
-              <div className="exp-title">{exp.company}</div>
-              <div className="exp-sub">{exp.position} · {exp.location}</div>
+              <div className="exp-top">
+                <span className="exp-company">{exp.company}</span>
+                <span className="exp-meta">
+                  {exp.position} · {exp.location}
+                  {(() => { const isPresent = (exp.duration || '').toLowerCase().includes('present'); return (
+                    <span className={`status-dot ${isPresent ? 'status-progress' : 'status-complete'}`}></span>
+                  ); })()}
+                </span>
+              </div>
               <div className="exp-desc">{exp.description}</div>
             </div>
           </li>
