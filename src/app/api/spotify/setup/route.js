@@ -19,7 +19,8 @@ export async function GET(request) {
         }, { status: 400 });
       }
 
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent('http://localhost:3000/api/spotify/setup')}&scope=user-read-currently-playing`;
+      const scope = encodeURIComponent('user-read-currently-playing user-top-read playlist-read-private');
+      const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent('http://localhost:3000/api/spotify/setup')}&scope=${scope}`;
       
       return Response.json({
         message: 'Visit this URL to authorize Spotify',

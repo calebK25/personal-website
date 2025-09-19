@@ -67,6 +67,83 @@ const WarpedSlider = () => {
     }
   };
 
+  const addPrincetonHighlight = (container) => {
+    try {
+      const desc = container.querySelector('.slide-description p');
+      if (!desc) return;
+      const text = desc.textContent || '';
+      const replacements = [
+        { key: 'Princeton University', cls: 'hl-orange' },
+        { key: 'Princeton Vision & Learning Lab', cls: 'hl-orange hl-soft-pink' },
+        { key: 'Princeton IPA Lab', cls: 'hl-orange hl-soft-blue' },
+        { key: 'Jay Chou', cls: 'artist-chip', data: 'Jay Chou' },
+        { key: 'BIBI', cls: 'artist-chip', data: 'BIBI' },
+        { key: 'Nondeterminism', cls: 'paper-chip hl-paper-lilac', href: 'https://arxiv.org/abs/2407.XXXXX' },
+        { key: 'Jet-Nemotron', cls: 'paper-chip hl-paper-mint', href: 'https://arxiv.org/abs/2405.XXXXX' },
+      ];
+
+      let html = text;
+      const paperEntries = [];
+      const papersData = [
+        { title: 'Nondeterminism', href: 'https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/', cls: 'paper-chip hl-paper-lilac' },
+        { title: 'Jet-Nemotron', href: 'https://arxiv.org/html/2508.15884v1', cls: 'paper-chip hl-paper-mint' },
+      ];
+      // avoid double-processing of highlight injection, but still build list
+      const hasMarkers = html.includes('hl-orange') || html.includes('artist-chip') || html.includes('paper-chip');
+
+      if (!hasMarkers) {
+        replacements.forEach(rep => {
+          if (!html.includes(rep.key)) return;
+          const safeKey = rep.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const re = new RegExp(safeKey);
+          if (rep.cls.includes('artist-chip')) {
+            html = html.replace(re, `<span class="artist-chip" data-artist="${rep.data}">${rep.key}<span class="artist-tooltip">Loading…</span></span>`);
+          } else if (rep.cls.includes('paper-chip')) {
+            // remove inline paper mention from paragraph; collect for list
+            paperEntries.push({ title: rep.key, href: rep.href, cls: rep.cls });
+            html = html.replace(re, '');
+          } else {
+            html = html.replace(re, `<span class="${rep.cls}" data-text="${rep.key}">${rep.key}</span>`);
+          }
+        });
+        desc.innerHTML = html;
+      }
+      // Build sleek papers list beneath the description (from constants to avoid missing inline matches)
+      const toRender = paperEntries.length > 0 ? paperEntries : papersData;
+      if (toRender.length > 0) {
+        let list = container.querySelector('.papers-list');
+        if (!list) {
+          list = document.createElement('div');
+          list.className = 'papers-list';
+          const key = document.createElement('span');
+          key.className = 'papers-key';
+          key.textContent = 'cool readings';
+          const items = document.createElement('span');
+          items.className = 'papers-items';
+          list.appendChild(key);
+          list.appendChild(items);
+          const descWrapper = desc.parentElement;
+          if (descWrapper) descWrapper.appendChild(list);
+        }
+        const items = list.querySelector('.papers-items');
+        if (items) {
+          items.innerHTML = '';
+          toRender.forEach(pe => {
+            const a = document.createElement('a');
+            a.className = pe.cls;
+            a.href = pe.href;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.textContent = pe.title;
+            items.appendChild(a);
+          });
+        }
+      }
+
+      // highlight reveal and list timing handled by slide animation code
+    } catch {}
+  };
+
   const processTextElements = (container) => {
     // Split title into words (reference behavior)
     const title = container.querySelector(".slide-title h1");
@@ -93,6 +170,42 @@ const WarpedSlider = () => {
         if (url) {
           window.open(url, '_blank');
         }
+      });
+    });
+
+    // Artist hover tooltips with Spotify stats
+    const artistChips = container.querySelectorAll('.artist-chip');
+    artistChips.forEach(chip => {
+      let hideTimer;
+      const artist = chip.getAttribute('data-artist');
+      const tooltip = chip.querySelector('.artist-tooltip');
+      const fetchStats = async () => {
+        try {
+          const res = await fetch(`/api/spotify/artist-stats?artist=${encodeURIComponent(artist)}`);
+          const data = await res.json();
+          if (!tooltip) return;
+          if (data && data.artist) {
+            const img = data.artist.image ? `<img class="artist-img" src="${data.artist.image}" alt="${data.artist.name}" />` : '';
+            tooltip.innerHTML = `
+              <div class="artist-tooltip-list">
+                <div class="row"><span class="kv-key">Artist</span><span class="kv-value">${img}${data.artist.name}</span></div>
+                <div class="row"><span class="kv-key">Top Track</span><span class="kv-value">${data.topTrack ? data.topTrack.name : '—'}</span></div>
+              </div>
+            `;
+          } else {
+            tooltip.textContent = 'No data';
+          }
+        } catch {
+          if (tooltip) tooltip.textContent = 'Error';
+        }
+      };
+      chip.addEventListener('mouseenter', () => {
+        clearTimeout(hideTimer);
+        chip.classList.add('show-tooltip');
+        fetchStats();
+      });
+      chip.addEventListener('mouseleave', () => {
+        hideTimer = setTimeout(() => chip.classList.remove('show-tooltip'), 80);
       });
     });
   };
@@ -140,6 +253,46 @@ const WarpedSlider = () => {
     };
     wrapper.addEventListener('mouseenter', onEnter);
     wrapper.addEventListener('mouseleave', onLeave);
+
+    // Build playlists UI if missing
+    let btn = wrapper.querySelector('.playlist-button');
+    let panel = wrapper.querySelector('.playlist-panel');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'playlist-button';
+      btn.setAttribute('aria-label', 'Playlists');
+      btn.setAttribute('title', 'Playlists');
+      btn.innerHTML = `<span class="playlist-dot"></span>`;
+      wrapper.appendChild(btn);
+    }
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.className = 'playlist-panel';
+      panel.innerHTML = `<div class="playlist-list"></div>`;
+      wrapper.appendChild(panel);
+    }
+
+    const list = panel.querySelector('.playlist-list');
+    const togglePanel = () => {
+      if (!panel) return;
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) {
+        fetch('/api/spotify/playlists').then(r => r.json()).then(data => {
+          const items = (data.playlists || []).slice(0, 12);
+          list.innerHTML = items.map(pl => `
+            <div class="playlist-item">
+              <img class="playlist-thumb" src="${pl.image || ''}" alt="" />
+              <a class="playlist-name" href="${pl.url || '#'}" target="_blank" rel="noopener noreferrer">${pl.name}</a>
+              <span class="playlist-meta">${pl.tracks}</span>
+            </div>
+          `).join('');
+        }).catch(() => {
+          list.innerHTML = '<div class="playlist-item">Failed to load</div>';
+        });
+      }
+    };
+    btn.onclick = togglePanel;
   };
 
   const updateSpotifyInfo = async (container) => {
@@ -154,7 +307,8 @@ const WarpedSlider = () => {
       if (!response.ok) {
         const errorData = await response.json();
         if (errorData.error === 'Spotify access token not configured') {
-          // Leave current text/animation intact
+          // Ensure fallback text
+          p.textContent = 'Not Playing';
           return;
         }
         throw new Error('Failed to fetch current track');
@@ -165,10 +319,13 @@ const WarpedSlider = () => {
       if (data && data.isPlaying && data.title) {
         const text = `${data.title} - ${data.artist}`;
         p.textContent = text;
+      } else {
+        p.textContent = 'Not Playing';
       }
     } catch (error) {
       console.error('Error fetching Spotify data:', error);
-      // Keep existing content; don't disrupt animation
+      // Show fallback text on error
+      p.textContent = 'Not Playing';
       return;
     }
   };
@@ -196,7 +353,7 @@ const WarpedSlider = () => {
     if (slideIndex === 0) {
       fullNameHTML = `
         <div class="full-name">
-          <h1>Caleb Kha-Uong</h1>
+          <h1>Caleb Kha-Uong.</h1>
         </div>
       `;
     }
@@ -276,6 +433,7 @@ const WarpedSlider = () => {
       timeline.to(currentCounterLines, {
         y: "-100%",
         opacity: 0,
+        filter: 'blur(4px)',
         duration: 0.4,
         stagger: 0.05,
         ease: "power2.inOut",
@@ -287,9 +445,11 @@ const WarpedSlider = () => {
     if (currentTitleWords.length > 0) {
       timeline.to(currentTitleWords, {
         y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
         duration: 0.8,
         stagger: 0.1,
-        ease: "power3.inOut",
+        ease: "power2.inOut",
       }, 0.1);
     }
 
@@ -298,6 +458,8 @@ const WarpedSlider = () => {
     if (currentFullNameWords.length > 0) {
       timeline.to(currentFullNameWords, {
         y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
         duration: 0.6,
         stagger: 0.08,
         ease: "power2.inOut",
@@ -309,9 +471,11 @@ const WarpedSlider = () => {
     if (currentDescLines.length > 0) {
       timeline.to(currentDescLines, {
         y: "-100%",
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power3.inOut",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 1.0,
+        stagger: 0.12,
+        ease: "power2.inOut",
       }, 0.1);
     }
 
@@ -320,9 +484,11 @@ const WarpedSlider = () => {
     if (currentTagLines.length > 0) {
       timeline.to(currentTagLines, {
         y: "-100%",
-        duration: 0.8,
-        stagger: 0.08,
-        ease: "power3.inOut",
+        opacity: 0,
+        filter: 'blur(4px)',
+        duration: 1.0,
+        stagger: 0.12,
+        ease: "power2.inOut",
       }, 0.1);
     }
 
@@ -339,6 +505,7 @@ const WarpedSlider = () => {
       if (currentProfileImg) {
         timeline.to(currentProfileImg, {
           opacity: 0,
+          filter: 'blur(6px)',
           duration: 0.6,
           ease: "power2.inOut",
         }, 0.1);
@@ -348,6 +515,7 @@ const WarpedSlider = () => {
       if (currentStatLabels.length > 0) {
         timeline.to(currentStatLabels, {
           y: "-100%",
+          filter: 'blur(4px)',
           duration: 0.6,
           stagger: 0.05,
           ease: "power2.inOut",
@@ -357,6 +525,7 @@ const WarpedSlider = () => {
       if (currentStatValues.length > 0) {
         timeline.to(currentStatValues, {
           y: "-100%",
+          filter: 'blur(4px)',
           duration: 0.6,
           stagger: 0.05,
           ease: "power2.inOut",
@@ -391,6 +560,8 @@ const WarpedSlider = () => {
         // Will prepare animated elements after splitting
 
         setTimeout(() => {
+              // Ensure highlight span exists before splitting lines
+              addPrincetonHighlight(newContent);
               processTextElements(newContent);
     setupSocialLinks(newContent);
 
@@ -404,7 +575,7 @@ const WarpedSlider = () => {
           // Do not inject micro-meta on About to maintain fixed header spacing
 
           // Prepare animated elements now that they exist
-          gsap.set([...newTitleWords, ...newDescLines, ...newTagLines, ...newCounterLines], { y: "100%" });
+          gsap.set([...newTitleWords, ...newDescLines, ...newTagLines, ...newCounterLines], { y: "100%", filter: 'blur(6px)', opacity: 0 });
           if (newFromToRows.length > 0) {
             gsap.set(newFromToRows, { opacity: 0 });
             if (newFromTo) {
@@ -464,7 +635,7 @@ const WarpedSlider = () => {
             // Initial state for full name words
             const fullNameWordsInit = profileStatsContainer.querySelectorAll(".full-name .word");
             if (fullNameWordsInit && fullNameWordsInit.length > 0) {
-              gsap.set(fullNameWordsInit, { y: "100%" });
+              gsap.set(fullNameWordsInit, { y: "100%", filter: 'blur(6px)', opacity: 0 });
             }
           }
 
@@ -485,9 +656,11 @@ const WarpedSlider = () => {
             if (validTitleWords.length > 0) {
               timeline.to(validTitleWords, {
                 y: "0%",
+                opacity: 1,
                 duration: 1.1,
                 ease: "power3.out",
                 stagger: 0.1,
+                filter: 'blur(0px)',
               }, 0.75);
             }
           }
@@ -499,9 +672,11 @@ const WarpedSlider = () => {
             if (validFullNameWords.length > 0) {
               timeline.to(validFullNameWords, {
                 y: "0%",
+                opacity: 1,
                 duration: 1,
                 ease: "power4.out",
                 stagger: 0.08,
+                filter: 'blur(0px)',
               }, 0.8);
             }
           }
@@ -512,10 +687,24 @@ const WarpedSlider = () => {
             if (validDescLines.length > 0) {
               timeline.to(validDescLines, {
                 y: "0%",
+                opacity: 1,
                 duration: 1.1,
                 ease: "power3.out",
                 stagger: 0.1,
+                filter: 'blur(0px)',
               }, "<");
+              // re-trigger highlight animation on slide entry after lines render
+              timeline.call(() => {
+                // ensure spans exist
+                addPrincetonHighlight(newContent);
+                const all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue');
+                all.forEach(s => s.classList.remove('hl-show'));
+                // force reflow
+                // eslint-disable-next-line no-unused-expressions
+                newContent.offsetWidth;
+                // trigger all highlights together after desc reveal
+                all.forEach(s => s.classList.add('hl-show'));
+              }, null, ">-=0.02");
             }
           }
 
@@ -525,9 +714,11 @@ const WarpedSlider = () => {
             if (validTagLines.length > 0) {
               timeline.to(validTagLines, {
                 y: "0%",
+                opacity: 1,
                 duration: 1.1,
                 ease: "power3.out",
                 stagger: 0.1,
+                filter: 'blur(0px)',
               }, "-=0.75");
             }
           }
@@ -540,9 +731,11 @@ const WarpedSlider = () => {
           if (newCounterLines && newCounterLines.length > 0) {
             timeline.to(newCounterLines, {
               y: "0%",
+              opacity: 1,
               duration: 1,
               ease: "power4.out",
               stagger: 0.1,
+              filter: 'blur(0px)',
             }, "<");
           }
 
@@ -567,6 +760,7 @@ const WarpedSlider = () => {
             if (profileImg) {
               timeline.to(profileImg, {
                 opacity: 1,
+                filter: 'blur(0px)',
                 duration: 0.8,
                 ease: "power2.out",
               }, 0.4);
@@ -597,7 +791,7 @@ const WarpedSlider = () => {
             // Set initial state for category titles
             const categoryTitles = techStack.querySelectorAll(".tech-category-title");
             categoryTitles.forEach(title => {
-              gsap.set(title, { opacity: 0, y: 15 });
+              gsap.set(title, { opacity: 0, y: 15, filter: 'blur(6px)' });
             });
 
             // Set initial state for tech items
@@ -608,6 +802,7 @@ const WarpedSlider = () => {
                 scale: 0.8,
                 y: 10,
                 rotationX: 15,
+                filter: 'blur(6px)'
               });
             }
 
@@ -625,6 +820,7 @@ const WarpedSlider = () => {
               timeline.to(title, {
                 opacity: 1,
                 y: 0,
+                filter: 'blur(0px)',
                 duration: 0.8,
                 ease: "power2.out",
                 onComplete: () => {
@@ -642,6 +838,7 @@ const WarpedSlider = () => {
                 scale: 1,
                 y: 0,
                 rotationX: 0,
+                filter: 'blur(0px)',
                 duration: 0.6,
                 stagger: 0.04,
                 ease: "back.out(1.7)",
@@ -679,12 +876,7 @@ const WarpedSlider = () => {
     };
     img.src = '/White Concrete Background.jpg';
     
-    // First fade in the entire content
-    gsap.to(content, {
-      opacity: 1,
-      duration: 0.5,
-      ease: "power2.out"
-    });
+    // Defer content fade until after initial states are set to avoid pop-in
 
     // Add receipt overlay elements once on initial slide
     if (content && !content.querySelector('.receipt-overlay')) {
@@ -711,8 +903,8 @@ const WarpedSlider = () => {
     const fromToRows = content.querySelectorAll(".fromto .ft-row");
     const fromTo = content.querySelector('.fromto');
 
-    // Set initial state
-    gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWords], { y: "100%" });
+    // Set initial state with blur but hidden to avoid pre-appearance glow
+    gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWords], { y: "100%", filter: 'blur(6px)', opacity: 0 });
     if (fromToRows.length > 0) {
       gsap.set(fromToRows, { opacity: 0 });
       if (fromTo) {
@@ -721,17 +913,47 @@ const WarpedSlider = () => {
       }
     }
 
-    // Animate title words
+    // Animate title words and fade in content container to avoid abrupt pop
     if (titleWords.length > 0) {
-      gsap.to(titleWords, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
+      // slightly longer pre-delay and fade for smoother entry
+      gsap.to(content, { opacity: 1, duration: 0.7, ease: 'power2.out', delay: 0.3 });
+      gsap.to(titleWords, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.1 });
       // reveal underline after text comes in (only for opted-in titles)
       const h1 = content.querySelector('.slide-title h1.underline');
       if (h1) setTimeout(() => h1.classList.add('title-show'), 900);
     }
 
-    // Animate description lines
+    // Animate description lines using the same timeline approach as slide transitions
     if (descLines.length > 0) {
-      gsap.to(descLines, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
+      // Insert highlights and build papers first, then re-split lines to ensure consistent markup
+      addPrincetonHighlight(content);
+      // Recreate line splits on the paragraph after innerHTML changes
+      const descP = content.querySelector('.slide-description p');
+      if (descP) {
+        // Clear previous line wrappers if any
+        descP.querySelectorAll('.line').forEach(l => l.replaceWith(...l.childNodes));
+        createLineElements(descP);
+      }
+      const updated = content.querySelectorAll('.slide-description .line');
+      gsap.set(updated, { y: '100%', opacity: 0, filter: 'blur(6px)' });
+      const tl = gsap.timeline();
+      tl.to(updated, { y: '0%', opacity: 1, filter: 'blur(0px)', duration: 1.1, ease: 'power3.out', stagger: 0.1, delay: 0.8 });
+      // After description fully reveals, trigger ALL highlights simultaneously
+      tl.call(() => {
+        const allHl = content.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue');
+        allHl.forEach(s => s.classList.add('hl-show'));
+      });
+      // Dropdown wiring for cool readings
+      const list = content.querySelector('.papers-list');
+      if (list) {
+        // blur-in shortly after highlights
+        tl.call(() => list.classList.add('papers-in'), null, '+=0.1');
+        const key = list.querySelector('.papers-key');
+        if (key && !key.dataset.bound) {
+          key.dataset.bound = '1';
+          key.addEventListener('click', () => list.classList.toggle('open'));
+        }
+      }
     }
 
     // Remove micro-meta on initial slide to keep hero spacing consistent
@@ -740,19 +962,19 @@ const WarpedSlider = () => {
 
     // Animate tag lines
     if (tagLines.length > 0) {
-      gsap.to(tagLines, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
+      gsap.to(tagLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.25 });
     }
 
     // spotify animates via tagLines
 
     // Animate counter lines
     if (counterLines.length > 0) {
-      gsap.to(counterLines, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.1, delay: 0.75 });
+      gsap.to(counterLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.2, ease: "power2.out", stagger: 0.12, delay: 1.3 });
     }
 
     // Animate full name words at same time as title/tags
     if (fullNameWords.length > 0) {
-      gsap.to(fullNameWords, { y: "0%", duration: 1, ease: "power4.out", stagger: 0.08, delay: 0.75 });
+      gsap.to(fullNameWords, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.1 });
     }
 
     // Animate From/To rows after tags
@@ -965,6 +1187,7 @@ const WarpedSlider = () => {
     // Process initial slide content first
     const initialContent = slider.querySelector(".slider-content");
     if (initialContent) {
+      addPrincetonHighlight(initialContent);
       processTextElements(initialContent);
       setupSocialLinks(initialContent);
       setupSlideControls(initialContent);
@@ -975,7 +1198,10 @@ const WarpedSlider = () => {
       // Fetch and animate when data arrives so it doesn't remain hidden if late
       // Keep timing with other tags by letting SplitText on LOADING... handle entry.
       // Update the text after animation completes to avoid early entrance.
-      setTimeout(() => updateSpotifyInfo(initialContent), 1100);
+      setTimeout(() => {
+        // Only update Spotify here; highlight timing is controlled via GSAP timeline
+        updateSpotifyInfo(initialContent);
+      }, 1100);
     }
 
     // Set up periodic Spotify updates
@@ -1093,7 +1319,7 @@ const WarpedSlider = () => {
           <div className="profile-stats-container">
             {/* Full Name with Didot styling for B and G */}
             <div className="full-name">
-              <h1>Caleb Kha-Uong</h1>
+              <h1>Caleb Kha-Uong.</h1>
             </div>
             
             <div className="profile-container">

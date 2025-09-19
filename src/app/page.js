@@ -18,7 +18,8 @@ export default function Home() {
   
 
   const handleStart = () => {
-    setShowSlider(true);
+    // longer delay to allow landing fade-out and ensure first slide animations are ready
+    setTimeout(() => setShowSlider(true), 700);
   };
 
   const handleEject = () => {

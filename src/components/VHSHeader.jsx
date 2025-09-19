@@ -70,6 +70,7 @@ const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
 
   return (
     <div
+      className="vhs-header"
       style={{
         position: 'fixed',
         top: '1rem',
@@ -80,8 +81,8 @@ const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
         alignItems: 'center',
         color: 'black',
         fontFamily: 'VCR, monospace',
-        zIndex: 10002,
-        pointerEvents: 'none',
+        zIndex: 12001,
+        pointerEvents: 'auto',
       }}
     >
       {/* Eject (Left) */}

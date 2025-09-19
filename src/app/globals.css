@@ -29,6 +29,25 @@ h1 {
   letter-spacing: -0.1rem;
 }
 
+/* Type pairings */
+.slide-title h1 { font-family: var(--font-instrument-serif), serif; }
+.slide-description p { font-family: var(--font-geist-mono), monospace; }
+.slide-tags p, .slide-index-wrapper p { font-family: var(--font-geist-mono), monospace; }
+.project-title h2 { font-family: var(--font-instrument-serif), serif !important; letter-spacing: 0; text-transform: none; }
+.project-definition p, .project-summary p, .project-blurb p, .project-pronunciation p { font-family: var(--font-geist-mono), monospace !important; }
+.timeline-content .company, .timeline-content .position { font-family: var(--font-geist-sans, "DM Sans"), sans-serif; }
+
+/* Ensure project texts are not capitalized */
+.projects-container p,
+.projects-container a,
+.projects-container li,
+.projects-container h3,
+.projects-container h4,
+.projects-container h5,
+.projects-container .tag {
+  text-transform: none !important;
+}
+
 p,
 a {
   text-decoration: none;
@@ -92,6 +111,67 @@ a {
   margin-bottom: 1rem; /* standard spacing like reference */
 }
 
+/* Use Geist Mono for slide descriptions under titles */
+.slide-description p {
+  font-family: var(--font-geist-mono), monospace;
+  text-transform: none;
+}
+
+/* Animated pastel orange highlight for key phrases */
+.hl-orange {
+  position: relative;
+  color: #000; /* start black */
+}
+/* keep text black; disable color sweep */
+.hl-orange::after { display: none !important; }
+.hl-orange::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.05em;
+  height: 1.05em; /* slightly taller to cover entire glyph */
+  background: rgba(255, 163, 102, 0.35); /* soft underline */
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hl-orange.hl-show::before { transform: scaleX(1); }
+
+/* Alternate highlight tones */
+.hl-soft-pink::before { background: #E9CDD5; }
+.hl-soft-blue::before { background: #DDE6F6; }
+/* Make lab highlights faster */
+.hl-soft-pink::before, .hl-soft-blue::before { transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Artist tooltip */
+.artist-chip { position: relative; cursor: pointer; }
+.artist-tooltip { position: absolute; left: 50%; transform: translateX(-50%) translateY(-8px); bottom: 100%; background: rgba(255,255,255,0.75); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease, filter 220ms ease; z-index: 10001; filter: blur(6px); }
+.artist-chip.show-tooltip .artist-tooltip { opacity: 1; transform: translateX(-50%) translateY(-12px); filter: blur(0px); }
+.artist-tooltip-list { display: grid; gap: 6px; }
+.artist-tooltip .row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline; }
+.artist-tooltip .kv-key { text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; }
+.artist-tooltip .kv-value { opacity: 0.95; }
+.artist-tooltip .artist-img { width: 16px; height: 16px; object-fit: cover; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
+
+/* Paper links */
+.paper-chip { position: relative; cursor: pointer; padding: 0 2px; }
+.paper-chip::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(0,0,0,0.5); transform: scaleX(0); transform-origin: left; transition: transform 300ms ease; }
+.paper-chip:hover::after { transform: scaleX(1); }
+.paper-chip:hover { filter: blur(0.2px); }
+
+/* Paper accent variants */
+.hl-paper-lilac::before { background: #E7DDF2; }
+.hl-paper-mint::before { background: #DDF2EA; }
+
+/* Papers list under description */
+.papers-list { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; }
+.papers-list .papers-key { cursor: pointer; letter-spacing: 0.06em; opacity: 0.75; font-family: var(--font-geist-mono), monospace; font-size: 12px; border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 2px; }
+.papers-list .papers-items { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center; max-height: 0; opacity: 0; filter: blur(6px); overflow: hidden; transition: opacity 240ms ease, filter 240ms ease, max-height 260ms ease; }
+.papers-list .papers-items a { text-decoration: none; border-bottom: 1px dotted rgba(0,0,0,0.3); padding-bottom: 2px; }
+.papers-list.papers-in { opacity: 1; transform: translateY(0); filter: blur(0px); }
+.papers-list.open .papers-items { max-height: 120px; opacity: 1; filter: blur(0px); }
 .slide-info {
   position: absolute;
   left: 0;
@@ -541,7 +621,7 @@ a {
   text-align: center;
 }
 
-.full-name h1 { text-align: center; }
+.full-name h1 { text-align: center; font-family: var(--font-instrument-serif), serif; font-weight: 400; font-size: clamp(3rem, 8vw, 7rem); line-height: 1; }
 
 .profile-container.profile-visible {
   opacity: 1;
@@ -724,6 +804,17 @@ a {
   will-change: transform;
   transition: transform 0.2s ease;
 }
+/* Minimal playlists panel */
+.playlist-button { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; cursor: pointer; opacity: 0.8; vertical-align: middle; }
+.playlist-button:hover { opacity: 1; }
+.playlist-dot { width: 4px; height: 4px; border-radius: 50%; background: #000; display: inline-block; }
+.playlist-panel { position: absolute; left: 0; top: 100%; margin-top: 6px; background: none; backdrop-filter: blur(8px); border: none; border-radius: 0; padding: 8px 0; box-shadow: none; font-family: var(--font-geist-mono), monospace; font-size: 12px; opacity: 0; transform: translateY(6px); filter: blur(6px); pointer-events: none; transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease; z-index: 10001; min-width: 220px; }
+.playlist-panel.open { opacity: 1; transform: translateY(0); filter: blur(0px); pointer-events: auto; }
+.playlist-list { display: grid; gap: 8px; }
+.playlist-item { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.playlist-thumb { width: 20px; height: 20px; object-fit: cover; border-radius: 3px; background: #eee; }
+.playlist-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.playlist-meta { opacity: 0.6; }
 /* Remove CSS animation; JS-driven marquee will handle precise widths */
 
 @media (max-width: 768px) {
@@ -1172,7 +1263,7 @@ details > summary::-webkit-details-marker { display: none; }
 }
 
 .project-blurb p {
-  font-family: "DM Mono", monospace !important;
+  font-family: var(--font-geist-mono), monospace !important;
   font-size: 0.9rem;
   font-weight: 400;
   color: #666;
@@ -1189,7 +1280,7 @@ details > summary::-webkit-details-marker { display: none; }
 }
 
 .project-pronunciation p {
-  font-family: "DM Mono", monospace !important;
+  font-family: var(--font-geist-mono), monospace !important;
   font-size: 0.9rem;
   font-weight: 400;
   color: #666;
@@ -1206,7 +1297,7 @@ details > summary::-webkit-details-marker { display: none; }
 }
 
 .project-definition p {
-  font-family: "DM Mono", monospace !important;
+  font-family: var(--font-geist-mono), monospace !important;
   font-size: 1rem;
   font-weight: 400;
   color: #000;
@@ -1225,7 +1316,7 @@ details > summary::-webkit-details-marker { display: none; }
 }
 
 .project-summary p {
-  font-family: "DM Mono", monospace !important;
+  font-family: var(--font-geist-mono), monospace !important;
   font-size: 0.85rem;
   font-weight: 400;
   color: #666;

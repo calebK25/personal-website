@@ -2,8 +2,7 @@ const slides = [
   {
     slideTitle: "About Me",
     slideDescription:
-      "I am a Computer Science student at Princeton University with minors in Statistics & Machine Learning and Quantitative Economics. I am currently interested in hallucination and reasoning in LLMs and VLMs, with an emphasis on how representational drift, memory consolidation, and semantic distortion arise in artificial systems. More specifically why models fabricate knowledge, how reasoning errors emerge, and what interventions, via training dynamics, curriculum design, or interpretability methods, can mitigate these failures.",
-    slideUrl: "/about me",
+    "I’m a Computer Science major at Princeton University with minors in Statistics & Machine Learning and Quantitative Economics. I’m especially interested in vision–language models and I’m convinced the frontier won’t be moved by compute alone, but by smarter training signals and mechanistic interpretability to understand—and fix—hallucinations. I currently conduct research in both the Princeton Vision & Learning Lab and the Princeton IPA Lab. Outside the lab, I’m into powerlifting and photography. Lately I’ve had Jay Chou (周杰倫) and BIBI (김형서) on repeat.",
     slideImg: "/pfp/Yt556Yja_400x400.jpg",
     slideTags: ["LinkedIn", "GitHub", "Email", "Spotify"],
   },
