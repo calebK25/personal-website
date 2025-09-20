@@ -172,7 +172,7 @@ a {
 
 /* Papers list under description */
 .papers-list { position: relative; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); }
-.papers-tabs { display: inline-flex; gap: 16px; justify-content: center; align-items: center; }
+.papers-tabs { display: inline-flex; gap: 16px; justify-content: center; align-items: center; position: relative; z-index: 2; }
 .papers-tab, .playlists-tab { cursor: pointer; letter-spacing: 0.06em; opacity: 0.85; font-family: var(--font-geist-mono), monospace; font-size: 12px; border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 2px; }
 .papers-items, .playlists-items { display: none; }
 .papers-list.papers-in { opacity: 1; transform: translateY(0); filter: blur(0px); }

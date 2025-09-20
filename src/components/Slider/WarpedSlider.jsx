@@ -168,9 +168,11 @@ const WarpedSlider = () => {
                 reveals.classList.remove('show');
               } else {
                 reveals.classList.add('show');
-                if (playlistsReveal) playlistsReveal.classList.remove('open');
+                if (playlistsReveal) playlistsReveal.classList.remove('show');
               }
             };
+            // Mark as bound to avoid double-binding on re-entry
+            papersTab.dataset.bound = '1';
             playlistsTab.textContent = 'cool songs';
             playlistsTab.onclick = async () => {
               try {
@@ -187,6 +189,7 @@ const WarpedSlider = () => {
               playlistsReveal.classList.add('show');
               reveals.classList.remove('show');
             };
+            playlistsTab.dataset.bound = '1';
             // default hidden; user clicks to reveal
           }
         }

@@ -19,14 +19,14 @@ const ExperienceTimeline = ({ isExiting = false }) => {
       position: "AI Researcher",
       duration: "12.03.24 - Present",
       location: "Princeton, NJ",
-      description: "Investigating hallucinations in large language models and video language models."
+      description: "Modeled and mitigated LLM/VLM hallucinations via DRM false-memory tests: executed a 32-variant clause-level prompt-factorial, probed representational drift, and optimized blocked vs. interleaved curricula—tracking recall/precision and lure hallucination rates."
     },
     {
       company: "Remora Capital",
       position: "Quantitative Developer", 
       duration: "05.01.25 - 09.09.25",
       location: "Remote",
-      description: "Working on quant firm startup."
+      description: "Built a machine learning pipeline to predict natural gas price direction and magnitude following hurricanes, engineering storm-specific and market features and validating with time-aware splits, achieving 78.6% post-landfall directional accuracy and halving post-landfall prediction error."
     },
     {
       company: "MyChance",
@@ -40,7 +40,7 @@ const ExperienceTimeline = ({ isExiting = false }) => {
       position: "ML/CV Researcher",
       duration: "09.05.25 - Present",
       location: "Princeton, NJ",
-      description: "Research advised by Erich Liang."
+      description: "Developing large-scale datasets and synthetic pipelines for dynamic camera intrinsic prediction, combining real-world video collection, data cleanup, and model training to advance 3D vision tasks. Advised by Erich Liang."
     }
     ,
     {
