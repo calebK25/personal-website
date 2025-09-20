@@ -2,7 +2,7 @@ const slides = [
   {
     slideTitle: "About Me",
     slideDescription:
-    "I’m a Computer Science major at Princeton University with minors in Statistics & Machine Learning and Quantitative Economics. I’m especially interested in vision–language models and I’m convinced the frontier won’t be moved by compute alone, but by smarter training signals and mechanistic interpretability to understand—and fix—hallucinations. I currently conduct research in both the Princeton Vision & Learning Lab and the Princeton IPA Lab. Outside the lab, I’m into powerlifting and photography. Lately I’ve had Jay Chou (周杰倫) and BIBI (김형서) on repeat.",
+    "I’m a Computer Science major at Princeton University with minors in Statistics & Machine Learning. I’m especially interested in vision–language models. In regards to the current landscape of AI, I believe the frontier won’t be moved by compute alone, but by smarter training signals and mechanistic interpretability to understand and fix hallucinations. I currently conduct research in both the Princeton Vision & Learning Lab and the Princeton IPA Lab. Outside of academics, I’m into powerlifting and photography and I love listening to new music.",
     slideImg: "/pfp/Yt556Yja_400x400.jpg",
     slideTags: ["LinkedIn", "GitHub", "Email", "Spotify"],
   },

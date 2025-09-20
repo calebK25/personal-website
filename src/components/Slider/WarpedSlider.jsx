@@ -84,8 +84,10 @@ const WarpedSlider = () => {
         { key: 'Princeton University', cls: 'hl-orange' },
         { key: 'Princeton Vision & Learning Lab', cls: 'hl-orange hl-soft-pink' },
         { key: 'Princeton IPA Lab', cls: 'hl-orange hl-soft-blue' },
-        { key: 'Jay Chou', cls: 'hl-artist' },
-        { key: 'BIBI', cls: 'hl-artist' },
+        { key: 'Computer Science', cls: 'hl-orange hl-soft-cream' },
+        { key: 'Statistics and Machine Learning', cls: 'hl-orange hl-soft-sage' },
+        { key: 'Statistics & Machine Learning', cls: 'hl-orange hl-soft-sage' },
+      
         { key: 'Nondeterminism', cls: 'paper-chip hl-paper-lilac', href: 'https://arxiv.org/abs/2407.XXXXX' },
         { key: 'Jet-Nemotron', cls: 'paper-chip hl-paper-mint', href: 'https://arxiv.org/abs/2405.XXXXX' },
       ];
@@ -144,7 +146,7 @@ const WarpedSlider = () => {
           if (descWrapper) descWrapper.appendChild(list);
         }
         const reveals = list.querySelector('.papers-reveal');
-        const playlistsReveal = list.querySelector('.playlists-popup');
+        const playlistsReveal = list.querySelector('.playlists-reveal');
         if (reveals) {
           reveals.innerHTML = '';
           toRender.forEach(pe => {
@@ -174,10 +176,13 @@ const WarpedSlider = () => {
               try {
                 const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
                 const data = await res.json();
-                const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join(' ');
-                playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
+                const listHtml = (data.tracks || []).slice(0,5).map(t => {
+                  const artists = Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artists || '');
+                  return `<span class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</span>`;
+                }).join('');
+                playlistsReveal.innerHTML = `${listHtml || '—'}`;
               } catch {
-                playlistsReveal.innerHTML = '<div class="pl-list">—</div>';
+                playlistsReveal.innerHTML = '—';
               }
               playlistsReveal.classList.add('show');
               reveals.classList.remove('show');
@@ -692,7 +697,7 @@ const WarpedSlider = () => {
               timeline.call(() => {
                 // ensure spans exist
                 addPrincetonHighlight(newContent);
-                const all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue');
+                const all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
                 all.forEach(s => s.classList.remove('hl-show'));
                 // force reflow
                 // eslint-disable-next-line no-unused-expressions
@@ -729,8 +734,11 @@ const WarpedSlider = () => {
                         const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
                         const data = await res.json();
                         if (playlistsReveal) {
-                          const listHtml = (data.tracks || []).slice(0,5).map(t => `<a class=\"paper-chip\" href=\"#\" tabindex=\"-1\">${t.name} — ${t.artists||''}</a>`).join(' ');
-                          playlistsReveal.innerHTML = `<div class=\"pl-list\">${listHtml || '—'}</div>`;
+                          const listHtml = (data.tracks || []).slice(0,5).map(t => {
+                            const artists = Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artists || '');
+                            return `<span class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</span>`;
+                          }).join('');
+                          playlistsReveal.innerHTML = `${listHtml || '—'}`;
                           playlistsReveal.classList.add('show');
                         }
                         if (reveals) reveals.classList.remove('show');
@@ -978,7 +986,7 @@ const WarpedSlider = () => {
       tl.to(updated, { y: '0%', opacity: 1, filter: 'blur(0px)', duration: 1.1, ease: 'power3.out', stagger: 0.1, delay: 0.8 });
       // After description fully reveals, trigger ALL highlights simultaneously
       tl.call(() => {
-        const allHl = content.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue');
+        const allHl = content.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
         allHl.forEach(s => s.classList.add('hl-show'));
       });
       // Dropdown wiring for cool readings
