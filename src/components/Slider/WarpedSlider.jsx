@@ -85,8 +85,7 @@ const WarpedSlider = () => {
         { key: 'Princeton Vision & Learning Lab', cls: 'hl-orange hl-soft-pink' },
         { key: 'Princeton IPA Lab', cls: 'hl-orange hl-soft-blue' },
         { key: 'Computer Science', cls: 'hl-orange hl-soft-cream' },
-        { key: 'Statistics and Machine Learning', cls: 'hl-orange hl-soft-sage' },
-        { key: 'Statistics & Machine Learning', cls: 'hl-orange hl-soft-sage' },
+        // Stats & ML handled via phrase regex before this list
       
         { key: 'Nondeterminism', cls: 'paper-chip hl-paper-lilac', href: 'https://arxiv.org/abs/2407.XXXXX' },
         { key: 'Jet-Nemotron', cls: 'paper-chip hl-paper-mint', href: 'https://arxiv.org/abs/2405.XXXXX' },
@@ -98,26 +97,27 @@ const WarpedSlider = () => {
         { title: 'Nondeterminism', href: 'https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/', cls: 'paper-chip hl-paper-lilac' },
         { title: 'Jet-Nemotron', href: 'https://arxiv.org/html/2508.15884v1', cls: 'paper-chip hl-paper-mint' },
       ];
-      // avoid double-processing of highlight injection, but still build list
-      const hasMarkers = html.includes('hl-orange') || html.includes('artist-chip') || html.includes('paper-chip');
+      // First: stats/ml phrase replacement (robust to & vs and, whitespace, casing)
+      // Phrase regex guarded so we don't wrap inside existing tags or attributes
+      const statsRegex = /(^|[^>])\b(Statistics\s*(?:&|and)\s*Machine\s*Learning)\b(?![^<]*>)/g;
+      let statsWrapped = false;
+      html = html.replace(statsRegex, (full, pre, phrase) => { statsWrapped = true; return `${pre}<span class="hl-orange hl-soft-sage" data-text="${phrase}">${phrase}</span>`; });
 
-      if (!hasMarkers) {
-        replacements.forEach(rep => {
-          if (!html.includes(rep.key)) return;
-          const safeKey = rep.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const re = new RegExp(safeKey);
-        if (rep.cls === 'hl-artist') {
-          html = html.replace(re, `<span class="hl-artist">${rep.key}</span>`);
-          } else if (rep.cls.includes('paper-chip')) {
-            // remove inline paper mention from paragraph; collect for list
-            paperEntries.push({ title: rep.key, href: rep.href, cls: rep.cls });
-            html = html.replace(re, '');
-          } else {
-            html = html.replace(re, `<span class="${rep.cls}" data-text="${rep.key}">${rep.key}</span>`);
-          }
-        });
-        desc.innerHTML = html;
-      }
+      // Rebuild other highlights from plain text each time so re-entry always wraps correctly
+      replacements.forEach(rep => {
+        if (!html.includes(rep.key)) return;
+        const safeKey = rep.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(safeKey);
+        if (rep.cls.includes('paper-chip')) {
+          paperEntries.push({ title: rep.key, href: rep.href, cls: rep.cls });
+          html = html.replace(re, '');
+        } else {
+          html = html.replace(re, `<span class="${rep.cls}" data-text="${rep.key}">${rep.key}</span>`);
+        }
+      });
+
+      // No per-word fallback to avoid double-wrapping inside attributes
+      desc.innerHTML = html;
       // Build sleek papers list beneath the description (from constants to avoid missing inline matches)
       const toRender = paperEntries.length > 0 ? paperEntries : papersData;
       if (toRender.length > 0) {
@@ -180,8 +180,8 @@ const WarpedSlider = () => {
                 const data = await res.json();
                 const listHtml = (data.tracks || []).slice(0,5).map(t => {
                   const artists = Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artists || '');
-                  return `<span class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</span>`;
-                }).join('');
+                  return `<a class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</a>`;
+                }).join(' ');
                 playlistsReveal.innerHTML = `${listHtml || '—'}`;
               } catch {
                 playlistsReveal.innerHTML = '—';
@@ -725,9 +725,12 @@ const WarpedSlider = () => {
               }, "<");
               // re-trigger highlight animation on slide entry after lines render
               timeline.call(() => {
-                // ensure spans exist
-                addPrincetonHighlight(newContent);
-                const all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
+                // Build highlights only if missing to avoid duplicate injections
+                let all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
+                if (all.length === 0) {
+                  addPrincetonHighlight(newContent);
+                  all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
+                }
                 all.forEach(s => s.classList.remove('hl-show'));
                 // force reflow
                 // eslint-disable-next-line no-unused-expressions
@@ -766,8 +769,8 @@ const WarpedSlider = () => {
                         if (playlistsReveal) {
                           const listHtml = (data.tracks || []).slice(0,5).map(t => {
                             const artists = Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artists || '');
-                            return `<span class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</span>`;
-                          }).join('');
+                            return `<a class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</a>`;
+                          }).join(' ');
                           playlistsReveal.innerHTML = `${listHtml || '—'}`;
                           playlistsReveal.classList.add('show');
                         }

@@ -189,7 +189,7 @@ a {
 .papers-reveal a,
 .playlists-reveal .pl-item,
 .playlists-reveal a,
-.playlists-reveal .paper-chip { opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); display: inline-flex; }
+.playlists-reveal .paper-chip { opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); display: inline-flex; font-size: 0.8rem; letter-spacing: 0; }
 .papers-reveal.show a,
 .playlists-reveal.show .pl-item,
 .playlists-reveal.show a,
