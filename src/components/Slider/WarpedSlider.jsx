@@ -462,6 +462,18 @@ const WarpedSlider = () => {
       }, 0.1);
     }
 
+    // Animate trailing period exit (excluded from SplitText words)
+    const currentNameDot = currentContent.querySelector('.full-name .name-dot');
+    if (currentNameDot) {
+      timeline.to(currentNameDot, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.55,
+        ease: 'power2.inOut',
+      }, 0.1);
+    }
+
     // Animate description lines exit
     const currentDescLines = currentContent.querySelectorAll(".slide-description .line");
     if (currentDescLines.length > 0) {

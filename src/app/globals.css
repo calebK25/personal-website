@@ -109,6 +109,7 @@ a {
   width: 60%;
   text-align: center;
   margin-bottom: 1rem; /* standard spacing like reference */
+  position: relative; /* anchor absolute dropdowns so they don't push layout */
 }
 
 /* Use Geist Mono for slide descriptions under titles */
@@ -171,11 +172,11 @@ a {
 .hl-paper-mint::before { background: #DDF2EA; }
 
 /* Papers list under description */
-.papers-list { position: relative; display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 10px; opacity: 0; transform: translateY(6px); filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); z-index: 11062; }
+.papers-list { position: absolute; top: calc(100% + 4px); left: 50%; transform: translate(-50%, 0); display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 0; opacity: 0; filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); z-index: 11062; pointer-events: none; }
 .papers-tabs { display: inline-flex; gap: 16px; justify-content: center; align-items: center; position: relative; z-index: 11063; }
 .papers-tab, .playlists-tab { cursor: pointer; letter-spacing: 0.06em; opacity: 0.85; font-family: var(--font-geist-mono), monospace; font-size: 12px; border-bottom: 1px dotted rgba(0,0,0,0.35); padding-bottom: 2px; }
 .papers-items, .playlists-items { display: none; }
-.papers-list.papers-in { opacity: 1; transform: translateY(0); filter: blur(0px); }
+.papers-list.papers-in { opacity: 1; transform: translate(-50%, 0); filter: blur(0px); pointer-events: auto; }
 .papers-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); text-align: center; pointer-events: none; will-change: opacity, transform, filter; }
 .papers-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); }
 .papers-reveal.show { pointer-events: auto; }
@@ -228,7 +229,7 @@ a {
 /* Slight per-slide vertical tuning to match visual baseline */
 .slider-content[data-slide-index="0"] .slide-tags { transform: translateY(20px); }
 /* Lock About slide header to exact baseline to prevent drift across rebuilds */
-.slider-content[data-slide-index="0"] .slide-header { bottom: 0.5rem; top: auto; transform: translate(-50%, 0%); }
+.slider-content[data-slide-index="0"] .slide-header { bottom: 5rem; top: auto; transform: translate(-50%, 0%); }
 
 .slide-tags {
   display: flex;
