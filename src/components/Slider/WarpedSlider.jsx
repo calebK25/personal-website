@@ -130,23 +130,15 @@ const WarpedSlider = () => {
           const papersTab = document.createElement('span');
           papersTab.className = 'papers-tab';
           papersTab.textContent = 'cool readings';
-          const playlistsTab = document.createElement('span');
-          playlistsTab.className = 'playlists-tab';
-          playlistsTab.textContent = 'playlists';
           tabs.appendChild(papersTab);
-          tabs.appendChild(playlistsTab);
           const reveals = document.createElement('div');
           reveals.className = 'papers-reveal';
-          const playlistsReveal = document.createElement('div');
-          playlistsReveal.className = 'playlists-reveal';
           list.appendChild(tabs);
           list.appendChild(reveals);
-          list.appendChild(playlistsReveal);
           const descWrapper = desc.parentElement;
           if (descWrapper) descWrapper.appendChild(list);
         }
         const reveals = list.querySelector('.papers-reveal');
-        const playlistsReveal = list.querySelector('.playlists-reveal');
         if (reveals) {
           reveals.innerHTML = '';
           toRender.forEach(pe => {
@@ -159,8 +151,7 @@ const WarpedSlider = () => {
             reveals.appendChild(a);
           });
           const papersTab = list.querySelector('.papers-tab');
-          const playlistsTab = list.querySelector('.playlists-tab');
-          if (papersTab && playlistsTab) {
+          if (papersTab) {
             papersTab.onclick = () => {
               // Toggle cool readings reveal
               const isShown = reveals.classList.contains('show');
@@ -168,29 +159,10 @@ const WarpedSlider = () => {
                 reveals.classList.remove('show');
               } else {
                 reveals.classList.add('show');
-                if (playlistsReveal) playlistsReveal.classList.remove('show');
               }
             };
             // Mark as bound to avoid double-binding on re-entry
             papersTab.dataset.bound = '1';
-            playlistsTab.textContent = 'cool songs';
-            playlistsTab.onclick = async () => {
-              try {
-                const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
-                const data = await res.json();
-                const listHtml = (data.tracks || []).slice(0,5).map(t => {
-                  const artists = Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artists || '');
-                  return `<a class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</a>`;
-                }).join(' ');
-                playlistsReveal.innerHTML = `${listHtml || '—'}`;
-              } catch {
-                playlistsReveal.innerHTML = '—';
-              }
-              playlistsReveal.classList.add('show');
-              reveals.classList.remove('show');
-            };
-            playlistsTab.dataset.bound = '1';
-            // default hidden; user clicks to reveal
           }
         }
       }
@@ -725,12 +697,9 @@ const WarpedSlider = () => {
               }, "<");
               // re-trigger highlight animation on slide entry after lines render
               timeline.call(() => {
-                // Build highlights only if missing to avoid duplicate injections
-                let all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
-                if (all.length === 0) {
-                  addPrincetonHighlight(newContent);
-                  all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
-                }
+                // ensure spans exist
+                addPrincetonHighlight(newContent);
+                const all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
                 all.forEach(s => s.classList.remove('hl-show'));
                 // force reflow
                 // eslint-disable-next-line no-unused-expressions
@@ -738,14 +707,12 @@ const WarpedSlider = () => {
                 // trigger all highlights together after desc reveal
                 all.forEach(s => s.classList.add('hl-show'));
 
-                // Ensure papers/playlists tabs are visible and wired on re-entry
+                // Ensure papers tab is visible and wired on re-entry
                 const list = newContent.querySelector('.papers-list');
                 if (list) {
                   list.classList.add('papers-in');
                   const papersTab = list.querySelector('.papers-tab');
-                  const playlistsTab = list.querySelector('.playlists-tab');
                   const reveals = list.querySelector('.papers-reveal');
-                  const playlistsReveal = list.querySelector('.playlists-reveal');
                   if (papersTab && !papersTab.dataset.bound) {
                     papersTab.dataset.bound = '1';
                     papersTab.onclick = () => {
@@ -754,28 +721,8 @@ const WarpedSlider = () => {
                         if (isShown) reveals.classList.remove('show');
                         else {
                           reveals.classList.add('show');
-                          if (playlistsReveal) playlistsReveal.classList.remove('show');
                         }
                       }
-                    };
-                  }
-                  if (playlistsTab && !playlistsTab.dataset.bound) {
-                    playlistsTab.dataset.bound = '1';
-                    playlistsTab.textContent = 'cool songs';
-                    playlistsTab.onclick = async () => {
-                      try {
-                        const res = await fetch('/api/spotify/top-tracks', { cache: 'no-store' });
-                        const data = await res.json();
-                        if (playlistsReveal) {
-                          const listHtml = (data.tracks || []).slice(0,5).map(t => {
-                            const artists = Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artists || '');
-                            return `<a class=\"paper-chip\" tabindex=\"-1\">${t.name} — ${artists}</a>`;
-                          }).join(' ');
-                          playlistsReveal.innerHTML = `${listHtml || '—'}`;
-                          playlistsReveal.classList.add('show');
-                        }
-                        if (reveals) reveals.classList.remove('show');
-                      } catch {}
                     };
                   }
                 }
