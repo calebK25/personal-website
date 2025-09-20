@@ -206,7 +206,17 @@ const WarpedSlider = () => {
 
     // Split full name into words
     const name = container.querySelector(".full-name h1");
-    if (name) splitTitleToWords(name);
+    if (name) {
+      // Temporarily detach the trailing period so SplitText doesn't capture it
+      const dot = name.querySelector('.name-dot');
+      if (dot) {
+        dot.remove();
+      }
+      splitTitleToWords(name);
+      if (dot) {
+        name.appendChild(dot);
+      }
+    }
 
     // Split description, tags, and index into lines
     container.querySelectorAll(".slide-description p").forEach(createLineElements);
@@ -574,7 +584,9 @@ const WarpedSlider = () => {
           // Set initial state for the trailing period so it can bounce in
           const nameDotEl = newContent.querySelector('.full-name .name-dot');
           if (nameDotEl) {
-            gsap.set(nameDotEl, { y: -24, scale: 0.6, opacity: 0, transformOrigin: '50% 100%' });
+            // Ensure it sits outside any SplitText created wrappers
+            nameDotEl.parentElement?.appendChild(nameDotEl);
+            gsap.set(nameDotEl, { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' });
           }
 
           // Only set animation for elements that exist and are valid
@@ -658,10 +670,10 @@ const WarpedSlider = () => {
             }
           }
 
-          // Animate full name words
+          // Animate full name words (exclude the period)
           const newFullNameWords = newContent.querySelectorAll(".full-name .word");
           if (newFullNameWords && newFullNameWords.length > 0) {
-            const validFullNameWords = Array.from(newFullNameWords).filter(el => el && el.nodeType === 1);
+            const validFullNameWords = Array.from(newFullNameWords).filter(el => el && el.nodeType === 1 && !el.querySelector('.name-dot') && el.textContent.trim() !== '.');
             if (validFullNameWords.length > 0) {
               timeline.to(validFullNameWords, {
                 y: "0%",
@@ -677,9 +689,12 @@ const WarpedSlider = () => {
           // Bounce the trailing period into place after the name appears
           const nameDot = newContent.querySelector('.full-name .name-dot');
           if (nameDot) {
+            // Ensure the dot isn't wrapped by SplitText lines
+            nameDot.style.display = 'inline-block';
+            nameDot.style.willChange = 'transform, opacity';
             timeline.fromTo(nameDot,
-              { y: -24, scale: 0.6, opacity: 0, transformOrigin: '50% 100%' },
-              { y: 0, scale: 1, opacity: 1, duration: 1.15, ease: 'elastic.out(1.2, 0.35)' },
+              { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' },
+              { y: 0, scale: 1, opacity: 1, duration: 1.2, ease: 'elastic.out(1.25, 0.34)' },
               '>-0.05'
             );
           }
@@ -950,7 +965,8 @@ const WarpedSlider = () => {
     const fromTo = content.querySelector('.fromto');
 
   // Set initial state with blur but hidden to avoid pre-appearance glow
-  gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWords], { y: "100%", filter: 'blur(6px)', opacity: 0 });
+  const fullNameWordsFiltered = Array.from(fullNameWords).filter(el => !el.querySelector('.name-dot') && el.textContent.trim() !== '.');
+  gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWordsFiltered], { y: "100%", filter: 'blur(6px)', opacity: 0 });
   if (nameDotInitial) {
     gsap.set(nameDotInitial, { y: -36, scale: 0.5, opacity: 0, transformOrigin: '50% 100%' });
   }
@@ -1021,15 +1037,20 @@ const WarpedSlider = () => {
       gsap.to(counterLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.2, ease: "power2.out", stagger: 0.12, delay: 1.3 });
     }
 
-    // Animate full name words at same time as title/tags
-    if (fullNameWords.length > 0) {
-      gsap.to(fullNameWords, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.1 });
+    // Animate full name words and bounce the trailing period in a dedicated timeline
+    if (fullNameWordsFiltered.length > 0 || nameDotInitial) {
+      const nameTL = gsap.timeline({ delay: 1.05 });
+      if (fullNameWordsFiltered.length > 0) {
+        nameTL.to(fullNameWordsFiltered, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.0, ease: "power4.out", stagger: 0.08 });
+      }
+      if (nameDotInitial) {
+        nameTL.fromTo(nameDotInitial,
+          { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' },
+          { y: 0, scale: 1, opacity: 1, duration: 1.15, ease: 'elastic.out(1.25, 0.34)' },
+          '>-0.05'
+        );
+      }
     }
-
-  // Bounce the trailing period on initial entry as well
-  if (nameDotInitial) {
-    gsap.to(nameDotInitial, { y: 0, scale: 1, opacity: 1, duration: 1.25, ease: 'elastic.out(1.3, 0.32)', delay: 1.22 });
-  }
 
     // Animate From/To rows after tags
     if (fromToRows.length > 0) {
