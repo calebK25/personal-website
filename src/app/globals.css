@@ -175,6 +175,10 @@ a {
 .papers-list { position: absolute; top: calc(100% + 4px); left: 50%; transform: translate(-50%, 0); display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 0; opacity: 0; filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); z-index: 11062; pointer-events: none; }
 .papers-tabs { display: inline-flex; justify-content: center; align-items: center; position: relative; z-index: 11063; }
 .papers-tab { cursor: pointer; letter-spacing: 0.08em; opacity: 0.9; font-family: var(--font-geist-mono), monospace; font-size: 12px; padding-bottom: 2px; text-transform: lowercase; }
+/* Clean underline hover animation for "cool readings" */
+.papers-tab { position: relative; }
+.papers-tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: rgba(0,0,0,0.65); transform: scaleX(0); transform-origin: left; transition: transform 240ms cubic-bezier(.22,1,.36,1); }
+.papers-tab:hover::after, .papers-tab:focus-visible::after { transform: scaleX(1); }
 .papers-items, .playlists-items { display: none; }
 .papers-list.papers-in { opacity: 1; transform: translate(-50%, 0); filter: blur(0px); pointer-events: auto; }
 .papers-reveal { display: block; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); text-align: center; pointer-events: none; will-change: opacity, transform, filter; }
