@@ -18,7 +18,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata = {
-  title: "caleb",
+  title: "caleb.",
   description: "portfolio",
   icons: {
     icon: "/favicon",
