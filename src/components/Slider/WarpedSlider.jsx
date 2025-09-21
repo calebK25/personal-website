@@ -79,13 +79,20 @@ const WarpedSlider = () => {
         if (existingList) existingList.remove();
         return;
       }
-      const text = desc.textContent || '';
+      // Always rebuild from original slide description to avoid stale wrappers
+      let text = desc.textContent || '';
+      const hostIndexStr = host ? host.getAttribute('data-slide-index') : null;
+      const hostIndex = hostIndexStr != null ? parseInt(hostIndexStr, 10) : -1;
+      if (!Number.isNaN(hostIndex) && slides[hostIndex] && slides[hostIndex].slideDescription) {
+        text = String(slides[hostIndex].slideDescription);
+      }
       const replacements = [
         { key: 'Princeton University', cls: 'hl-orange' },
         { key: 'Princeton Vision & Learning Lab', cls: 'hl-orange hl-soft-pink' },
         { key: 'Princeton IPA Lab', cls: 'hl-orange hl-soft-blue' },
         { key: 'Computer Science', cls: 'hl-orange hl-soft-cream' },
-        // Stats & ML handled via phrase regex before this list
+        { key: 'Statistics & Machine Learning', cls: 'hl-orange hl-soft-sage' },
+        { key: 'Statistics and Machine Learning', cls: 'hl-orange hl-soft-sage' },
       
         { key: 'Nondeterminism', cls: 'paper-chip hl-paper-lilac', href: 'https://arxiv.org/abs/2407.XXXXX' },
         { key: 'Jet-Nemotron', cls: 'paper-chip hl-paper-mint', href: 'https://arxiv.org/abs/2405.XXXXX' },
@@ -96,12 +103,9 @@ const WarpedSlider = () => {
       const papersData = [
         { title: 'Nondeterminism', href: 'https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/', cls: 'paper-chip hl-paper-lilac' },
         { title: 'Jet-Nemotron', href: 'https://arxiv.org/html/2508.15884v1', cls: 'paper-chip hl-paper-mint' },
+        { title: 'Pokemon Red via RL', href: 'https://arxiv.org/pdf/2502.19920', cls: 'paper-chip hl-paper-lilac' },
       ];
-      // First: stats/ml phrase replacement (robust to & vs and, whitespace, casing)
-      // Phrase regex guarded so we don't wrap inside existing tags or attributes
-      const statsRegex = /(^|[^>])\b(Statistics\s*(?:&|and)\s*Machine\s*Learning)\b(?![^<]*>)/g;
-      let statsWrapped = false;
-      html = html.replace(statsRegex, (full, pre, phrase) => { statsWrapped = true; return `${pre}<span class="hl-orange hl-soft-sage" data-text="${phrase}">${phrase}</span>`; });
+      // Stats phrase handled by replacements to mirror other highlight logic
 
       // Rebuild other highlights from plain text each time so re-entry always wraps correctly
       replacements.forEach(rep => {
@@ -116,7 +120,8 @@ const WarpedSlider = () => {
         }
       });
 
-      // No per-word fallback to avoid double-wrapping inside attributes
+      // Reset to plain text then inject to avoid old wrappers accumulating
+      desc.textContent = text;
       desc.innerHTML = html;
       // Build sleek papers list beneath the description (from constants to avoid missing inline matches)
       const toRender = paperEntries.length > 0 ? paperEntries : papersData;
@@ -383,142 +388,10 @@ const WarpedSlider = () => {
     const currentContent = document.querySelector(".slider-content");
     const slider = sliderRef.current;
 
-    const timeline = gsap.timeline();
-
-    // Page transition overlay (transparent)
-    let overlay = document.querySelector('.page-transition-overlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.className = 'page-transition-overlay';
-      document.body.appendChild(overlay);
-    }
-    gsap.set(overlay, { opacity: 0, pointerEvents: 'none' });
-    // Remove dark flash: keep overlay transparent (no fade in)
-
-    // Animate counter exit
-    const currentCounterLines = currentContent.querySelectorAll(".slide-index-wrapper .line");
-    if (currentCounterLines && currentCounterLines.length > 0) {
-      timeline.to(currentCounterLines, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(4px)',
-        duration: 0.4,
-        stagger: 0.05,
-        ease: "power2.inOut",
-      }, 0);
-    }
-
-    // Animate title characters exit
-    const currentTitleWords = currentContent.querySelectorAll(".slide-title .word");
-    if (currentTitleWords.length > 0) {
-      timeline.to(currentTitleWords, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(6px)',
-        duration: 0.8,
-        stagger: 0.1,
-        ease: "power2.inOut",
-      }, 0.1);
-    }
-
-    // Animate full name words exit
-    const currentFullNameWords = currentContent.querySelectorAll(".full-name .word");
-    if (currentFullNameWords.length > 0) {
-      timeline.to(currentFullNameWords, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(6px)',
-        duration: 0.6,
-        stagger: 0.08,
-        ease: "power2.inOut",
-      }, 0.1);
-    }
-
-    // Animate trailing period exit (excluded from SplitText words)
-    const currentNameDot = currentContent.querySelector('.full-name .name-dot');
-    if (currentNameDot) {
-      timeline.to(currentNameDot, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(6px)',
-        duration: 0.55,
-        ease: 'power2.inOut',
-      }, 0.1);
-    }
-
-    // Animate description lines exit
-    const currentDescLines = currentContent.querySelectorAll(".slide-description .line");
-    if (currentDescLines.length > 0) {
-      timeline.to(currentDescLines, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(6px)',
-        duration: 1.0,
-        stagger: 0.12,
-        ease: "power2.inOut",
-      }, 0.1);
-    }
-
-    // Animate tags exit
-    const currentTagLines = currentContent.querySelectorAll(".slide-tags .line");
-    if (currentTagLines.length > 0) {
-      timeline.to(currentTagLines, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(4px)',
-        duration: 1.0,
-        stagger: 0.12,
-        ease: "power2.inOut",
-      }, 0.1);
-    }
-
-
-
-    // Animate profile picture and statistics exit
-    const currentProfileStatsContainer = currentContent.querySelector(".profile-stats-container");
-    if (currentProfileStatsContainer) {
-      const currentProfileImg = currentProfileStatsContainer.querySelector(".profile-img");
-      const currentStatLabels = currentProfileStatsContainer.querySelectorAll(".stat-label");
-      const currentStatValues = currentProfileStatsContainer.querySelectorAll(".stat-value");
-      
-      // Animate profile picture exit
-      if (currentProfileImg) {
-        timeline.to(currentProfileImg, {
-          opacity: 0,
-          filter: 'blur(6px)',
-          duration: 0.6,
-          ease: "power2.inOut",
-        }, 0.1);
-      }
-      
-      // Animate statistics exit
-      if (currentStatLabels.length > 0) {
-        timeline.to(currentStatLabels, {
-          y: "-100%",
-          filter: 'blur(4px)',
-          duration: 0.6,
-          stagger: 0.05,
-          ease: "power2.inOut",
-        }, 0.1);
-      }
-      
-      if (currentStatValues.length > 0) {
-        timeline.to(currentStatValues, {
-          y: "-100%",
-          filter: 'blur(4px)',
-          duration: 0.6,
-          stagger: 0.05,
-          ease: "power2.inOut",
-        }, 0.1);
-      }
-    }
-
-    // Delay slide switch until current content fully fades
-    timeline.call(
-      () => {
+    const exitTL = gsap.timeline({
+      onComplete: () => {
         const newContent = createSlideElement(slides[nextIndex], nextIndex);
 
-        timeline.kill();
         currentContent.remove();
         slider.appendChild(newContent);
 
@@ -628,7 +501,7 @@ const WarpedSlider = () => {
             }
           }
 
-          const timeline = gsap.timeline({
+          const entryTL = gsap.timeline({
               onComplete: () => {
                 isTransitioningRef.current = false;
                 currentSlideIndexRef.current = nextIndex;
@@ -643,14 +516,14 @@ const WarpedSlider = () => {
           if (newTitleWords && newTitleWords.length > 0) {
             const validTitleWords = Array.from(newTitleWords).filter(el => el && el.nodeType === 1);
             if (validTitleWords.length > 0) {
-              timeline.to(validTitleWords, {
+              entryTL.to(validTitleWords, {
               y: "0%",
                 opacity: 1,
-                duration: 1.1,
+                duration: 0.95,
                 ease: "power3.out",
-                stagger: 0.1,
+                stagger: { amount: 0.28 },
                 filter: 'blur(0px)',
-              }, 0.75);
+              }, 0.6);
             }
           }
 
@@ -659,14 +532,14 @@ const WarpedSlider = () => {
           if (newFullNameWords && newFullNameWords.length > 0) {
             const validFullNameWords = Array.from(newFullNameWords).filter(el => el && el.nodeType === 1 && !el.querySelector('.name-dot') && el.textContent.trim() !== '.');
             if (validFullNameWords.length > 0) {
-              timeline.to(validFullNameWords, {
+              entryTL.to(validFullNameWords, {
                 y: "0%",
                 opacity: 1,
-                duration: 1,
+                duration: 0.9,
                 ease: "power4.out",
                 stagger: 0.08,
                 filter: 'blur(0px)',
-              }, 0.8);
+              }, 0.62);
             }
           }
 
@@ -676,9 +549,9 @@ const WarpedSlider = () => {
             // Ensure the dot isn't wrapped by SplitText lines
             nameDot.style.display = 'inline-block';
             nameDot.style.willChange = 'transform, opacity';
-            timeline.fromTo(nameDot,
+            entryTL.fromTo(nameDot,
               { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' },
-              { y: 0, scale: 1, opacity: 1, duration: 1.2, ease: 'elastic.out(1.25, 0.34)' },
+              { y: 0, scale: 1, opacity: 1, duration: 1.0, ease: 'elastic.out(1.2, 0.36)' },
               '>-0.05'
             );
           }
@@ -687,18 +560,17 @@ const WarpedSlider = () => {
           if (newDescLines && newDescLines.length > 0) {
             const validDescLines = Array.from(newDescLines).filter(el => el && el.nodeType === 1);
             if (validDescLines.length > 0) {
-              timeline.to(validDescLines, {
+              entryTL.to(validDescLines, {
                 y: "0%",
                 opacity: 1,
-                duration: 1.1,
+                duration: 0.95,
                 ease: "power3.out",
-                stagger: 0.1,
+                stagger: { amount: 0.32 },
                 filter: 'blur(0px)',
-              }, "<");
+              }, "<+0.01");
               // re-trigger highlight animation on slide entry after lines render
-              timeline.call(() => {
-                // ensure spans exist
-                addPrincetonHighlight(newContent);
+              entryTL.call(() => {
+                // spans were injected before splitting; just replay their animation
                 const all = newContent.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
                 all.forEach(s => s.classList.remove('hl-show'));
                 // force reflow
@@ -710,7 +582,10 @@ const WarpedSlider = () => {
                 // Ensure papers tab is visible and wired on re-entry
                 const list = newContent.querySelector('.papers-list');
                 if (list) {
-                  list.classList.add('papers-in');
+                  // delay cool readings reveal until after desc & highlights
+                  setTimeout(() => {
+                    list.classList.add('papers-in');
+                  }, 120);
                   const papersTab = list.querySelector('.papers-tab');
                   const reveals = list.querySelector('.papers-reveal');
                   if (papersTab && !papersTab.dataset.bound) {
@@ -719,13 +594,17 @@ const WarpedSlider = () => {
                       const isShown = reveals && reveals.classList.contains('show');
                       if (reveals) {
                         if (isShown) reveals.classList.remove('show');
-                        else {
-                          reveals.classList.add('show');
-                        }
+                        else reveals.classList.add('show');
                       }
                     };
                   }
                 }
+              // Immediately after desc+highlights, reveal slide-specific UIs
+              entryTL.call(() => {
+                if (nextIndex === 2) { setShowProjects(true); setProjectsActive(true); }
+                if (nextIndex === 3) { setShowGallery(true); setGalleryActive(true); }
+                if (nextIndex === 1) { setShowTimeline(true); setTimelineExiting(false); }
+              });
               }, null, ">-=0.02");
             }
           }
@@ -734,14 +613,14 @@ const WarpedSlider = () => {
           if (newTagLines && newTagLines.length > 0) {
             const validTagLines = Array.from(newTagLines).filter(el => el && el.nodeType === 1);
             if (validTagLines.length > 0) {
-              timeline.to(validTagLines, {
+              entryTL.to(validTagLines, {
                 y: "0%",
                 opacity: 1,
-                duration: 1.1,
+                duration: 0.95,
                 ease: "power3.out",
-                stagger: 0.1,
+                stagger: { amount: 0.28 },
                 filter: 'blur(0px)',
-              }, "-=0.75");
+              }, "-=0.48");
             }
           }
 
@@ -751,12 +630,12 @@ const WarpedSlider = () => {
 
           // Animate counter
           if (newCounterLines && newCounterLines.length > 0) {
-            timeline.to(newCounterLines, {
+            entryTL.to(newCounterLines, {
               y: "0%",
                 opacity: 1,
-              duration: 1,
+              duration: 0.9,
               ease: "power4.out",
-              stagger: 0.1,
+              stagger: { amount: 0.24 },
               filter: 'blur(0px)',
             }, "<");
           }
@@ -764,10 +643,10 @@ const WarpedSlider = () => {
           // Animate From/To, only on About slide
           if (nextIndex === 0 && newFromToRows.length > 0) {
             if (newFromTo) {
-              timeline.to(newFromTo, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.9);
-              timeline.call(() => newFromTo.style.setProperty('--lineScale', '1'), null, 0.95);
+              entryTL.to(newFromTo, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.9);
+              entryTL.call(() => newFromTo.style.setProperty('--lineScale', '1'), null, 0.95);
             }
-            timeline.to(newFromToRows, {
+            entryTL.to(newFromToRows, {
               opacity: 1,
               duration: 0.6,
               stagger: 0.1,
@@ -780,7 +659,7 @@ const WarpedSlider = () => {
             // Animate profile picture
             const profileImg = profileStatsContainer.querySelector(".profile-img");
             if (profileImg) {
-              timeline.to(profileImg, {
+              entryTL.to(profileImg, {
                 opacity: 1,
                 filter: 'blur(0px)',
                 duration: 0.8,
@@ -791,7 +670,7 @@ const WarpedSlider = () => {
             // Animate full name characters
             const fullNameChars = profileStatsContainer.querySelectorAll(".full-name .char span");
             if (fullNameChars && fullNameChars.length > 0) {
-              timeline.to(fullNameChars, {
+              entryTL.to(fullNameChars, {
                 y: "0%",
                 duration: 0.8,
                 stagger: 0.025,
@@ -799,6 +678,12 @@ const WarpedSlider = () => {
               }, 0.5);
             }
           }
+
+          // After title/description, reveal Projects and Gallery when on their slides
+          // and reveal Experience timeline similarly for consistent timing
+          if (nextIndex === 2) { entryTL.call(() => { setShowProjects(true); setProjectsActive(true); }); }
+          if (nextIndex === 3) { entryTL.call(() => { setShowGallery(true); setGalleryActive(true); }); }
+          if (nextIndex === 1) { entryTL.call(() => { setShowTimeline(true); setTimelineExiting(false); }); }
 
           // Animate tech stack with growing lines
           const techStack = newContent.querySelector(".tech-stack");
@@ -829,7 +714,7 @@ const WarpedSlider = () => {
             }
 
             // Animate tech stack container
-            timeline.to(techStack, {
+            entryTL.to(techStack, {
               opacity: 1,
               scale: 1,
               y: 0,
@@ -839,7 +724,7 @@ const WarpedSlider = () => {
 
             // Animate category titles with growing lines first
             categoryTitles.forEach((title, index) => {
-              timeline.to(title, {
+              entryTL.to(title, {
                 opacity: 1,
                 y: 0,
                 filter: 'blur(0px)',
@@ -855,7 +740,7 @@ const WarpedSlider = () => {
 
             // Animate tech items after lines are fully extended
             if (techItems.length > 0) {
-              timeline.to(techItems, {
+              entryTL.to(techItems, {
                 opacity: 1,
                 scale: 1,
                 y: 0,
@@ -881,11 +766,167 @@ const WarpedSlider = () => {
               }, 2.0); // Reduced delay - wait less for category titles
             }
           }
-        }, 100);
-      },
-      null,
-      0.5
-    );
+        }, 40);
+      }
+    });
+
+    // Page transition overlay (transparent)
+    let overlay = document.querySelector('.page-transition-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.className = 'page-transition-overlay';
+      document.body.appendChild(overlay);
+    }
+    gsap.set(overlay, { opacity: 0, pointerEvents: 'none' });
+    // Remove dark flash: keep overlay transparent (no fade in)
+
+    // Ensure description lines exist to fade out cleanly
+    const currentDescPForSplit = currentContent.querySelector('.slide-description p');
+    const hasLines = currentContent.querySelectorAll('.slide-description .line').length > 0;
+    if (currentDescPForSplit && !hasLines) {
+      try { createLineElements(currentDescPForSplit); } catch {}
+    }
+    // Animate counter exit
+    const currentCounterLines = currentContent.querySelectorAll(".slide-index-wrapper .line");
+    if (currentCounterLines && currentCounterLines.length > 0) {
+      exitTL.to(currentCounterLines, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(4px)',
+        duration: 0.35,
+        stagger: { amount: 0.18 },
+        ease: "power2.inOut",
+      }, 0);
+    }
+
+    // Animate title characters exit
+    const currentTitleWords = currentContent.querySelectorAll(".slide-title .word");
+    if (currentTitleWords.length > 0) {
+      exitTL.to(currentTitleWords, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.7,
+        stagger: { amount: 0.28 },
+        ease: "power2.inOut",
+      }, 0.1);
+    }
+
+    // Animate full name words exit
+    const currentFullNameWords = currentContent.querySelectorAll(".full-name .word");
+    if (currentFullNameWords.length > 0) {
+      exitTL.to(currentFullNameWords, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.5,
+        stagger: { amount: 0.24 },
+        ease: "power2.inOut",
+      }, 0.1);
+    }
+
+    // Animate trailing period exit (excluded from SplitText words)
+    const currentNameDot = currentContent.querySelector('.full-name .name-dot');
+    if (currentNameDot) {
+      exitTL.to(currentNameDot, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.45,
+        ease: 'power2.inOut',
+      }, 0.1);
+    }
+
+    // Animate description lines exit
+    const currentDescLines = currentContent.querySelectorAll(".slide-description .line");
+    if (currentDescLines.length > 0) {
+      exitTL.to(currentDescLines, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.85,
+        stagger: { amount: 0.36 },
+        ease: "power2.inOut",
+      }, 0.1);
+    }
+
+    // Animate tags exit
+    const currentTagLines = currentContent.querySelectorAll(".slide-tags .line");
+    if (currentTagLines.length > 0) {
+      exitTL.to(currentTagLines, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(4px)',
+        duration: 0.85,
+        stagger: { amount: 0.36 },
+        ease: "power2.inOut",
+      }, 0.1);
+    }
+
+    // Animate Cool Readings out like text
+    const currentPapersTab = currentContent.querySelector('.papers-list .papers-tab');
+    if (currentPapersTab) {
+      exitTL.to(currentPapersTab, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.5,
+        ease: 'power2.inOut'
+      }, 0.12);
+    }
+    const currentPaperLinks = currentContent.querySelectorAll('.papers-reveal a');
+    if (currentPaperLinks && currentPaperLinks.length > 0) {
+      exitTL.to(currentPaperLinks, {
+        y: "-100%",
+        opacity: 0,
+        filter: 'blur(6px)',
+        duration: 0.5,
+        stagger: 0.06,
+        ease: 'power2.inOut'
+      }, 0.12);
+    }
+    exitTL.call(() => { const l = currentContent.querySelector('.papers-list'); if (l) l.classList.remove('papers-in'); }, null, 0.1);
+
+
+
+    // Animate profile picture and statistics exit
+    const currentProfileStatsContainer = currentContent.querySelector(".profile-stats-container");
+    if (currentProfileStatsContainer) {
+      const currentProfileImg = currentProfileStatsContainer.querySelector(".profile-img");
+      const currentStatLabels = currentProfileStatsContainer.querySelectorAll(".stat-label");
+      const currentStatValues = currentProfileStatsContainer.querySelectorAll(".stat-value");
+      
+      // Animate profile picture exit
+      if (currentProfileImg) {
+        exitTL.to(currentProfileImg, {
+          opacity: 0,
+          filter: 'blur(6px)',
+          duration: 0.5,
+          ease: "power2.inOut",
+        }, 0.1);
+      }
+      
+      // Animate statistics exit
+      if (currentStatLabels.length > 0) {
+        exitTL.to(currentStatLabels, {
+          y: "-100%",
+          filter: 'blur(4px)',
+          duration: 0.5,
+          stagger: 0.05,
+          ease: "power2.inOut",
+        }, 0.1);
+      }
+      
+      if (currentStatValues.length > 0) {
+        exitTL.to(currentStatValues, {
+          y: "-100%",
+          filter: 'blur(4px)',
+          duration: 0.5,
+          stagger: 0.05,
+          ease: "power2.inOut",
+        }, 0.1);
+      }
+    }
   };
 
   const setupInitialSlide = () => {
@@ -1152,13 +1193,10 @@ const WarpedSlider = () => {
     currentSlideIndexRef.current = nextIndex;
     setCurrentSlideIndex(nextIndex);
     
-    // Handle gallery animation
+    // Handle gallery visibility (defer reveal to entry timeline)
     if (nextIndex === 3) {
-      // Delay gallery appearance to sync with slide transition and text reveal
-      setTimeout(() => {
-        setShowGallery(true);
-        setGalleryActive(true);
-      }, 800); // Increased delay to wait for text reveal
+      setShowGallery(false);
+      setGalleryActive(false);
     } else if (previousIndex === 3) {
       // If leaving photography slide, animate out smoothly
       setShowGallery(false);
@@ -1168,13 +1206,10 @@ const WarpedSlider = () => {
       setGalleryActive(false);
     }
 
-    // Handle timeline animation
+    // Handle timeline animation (defer reveal to entry timeline for uniformity)
     if (nextIndex === 1) {
-      // Delay timeline appearance to sync with slide transition
-      setTimeout(() => {
-        setShowTimeline(true);
+      setShowTimeline(false);
         setTimelineExiting(false);
-      }, 1600);
     } else if (previousIndex === 1) {
       // If leaving experience slide, animate out smoothly
       setTimelineExiting(true);
@@ -1187,13 +1222,10 @@ const WarpedSlider = () => {
       setTimelineExiting(false);
     }
 
-    // Handle projects animation
+    // Handle projects visibility (defer reveal to entry timeline)
     if (nextIndex === 2) {
-      // Delay projects appearance to sync with slide transition
-      setTimeout(() => {
-        setShowProjects(true);
-        setProjectsActive(true);
-      }, 600);
+      setShowProjects(false);
+      setProjectsActive(false);
     } else if (previousIndex === 2) {
       // If leaving projects slide, animate out smoothly
       setShowProjects(false);

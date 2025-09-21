@@ -111,7 +111,16 @@ const ExperienceTimeline = ({ isExiting = false }) => {
       const rows = Array.from(listRef.current.querySelectorAll('.exp-item'));
       rows.forEach((row, idx) => {
         row.classList.add('exp-pre');
-        setTimeout(() => row.classList.add('exp-row-in'), 90 * idx);
+        setTimeout(() => {
+          row.classList.add('exp-row-in');
+          const highlights = row.querySelectorAll('.exp-company .hl-orange');
+          highlights.forEach(h => {
+            h.classList.remove('hl-show');
+            // eslint-disable-next-line no-unused-expressions
+            h.offsetWidth; // force reflow to retrigger underline
+            h.classList.add('hl-show');
+          });
+        }, 90 * idx);
       });
       // fade in container after rows are scheduled
       listRef.current.classList.add('exp-visible');
@@ -147,23 +156,25 @@ const ExperienceTimeline = ({ isExiting = false }) => {
             <div className="exp-title"><span>{typed}</span><span className="caret"></span></div>
           </div>
         </li>
-        {orderedExperiences.map((exp, index) => (
-          <li key={index} className="exp-item">
-            <div className="exp-date">{exp.duration || '—'}</div>
-            <div className="exp-body">
-              <div className="exp-top">
-                <span className="exp-company">{exp.company}</span>
-                <span className="exp-meta">
-                  {exp.position} · {exp.location}
-                  {(() => { const isPresent = (exp.duration || '').toLowerCase().includes('present'); return (
-                    <span className={`status-dot ${isPresent ? 'status-progress' : 'status-complete'}`}></span>
-                  ); })()}
-                </span>
+        {orderedExperiences.map((exp, index) => {
+          const isPresent = (exp.duration || '').toLowerCase().includes('present');
+          return (
+            <li key={index} className="exp-item">
+              <div className="exp-date">{exp.duration || '—'}</div>
+              <div className="exp-body">
+                <div className="exp-top">
+                  <span className="exp-company">
+                    <span className={`hl-orange ${isPresent ? 'hl-exp-yellow' : 'hl-exp-sage'}`}>{exp.company}</span>
+                  </span>
+                  <span className="exp-meta">
+                    {exp.position} · {exp.location}
+                  </span>
+                </div>
+                <div className="exp-desc">{exp.description}</div>
               </div>
-              <div className="exp-desc">{exp.description}</div>
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
