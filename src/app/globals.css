@@ -815,7 +815,7 @@ a {
   display: inline-block;
   max-width: 260px;
   overflow: hidden;
-  vertical-align: middle;
+  vertical-align: baseline;
   border: none;
   padding: 0;
   margin: 0;

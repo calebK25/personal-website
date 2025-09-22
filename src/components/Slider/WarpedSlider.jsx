@@ -443,7 +443,7 @@ const WarpedSlider = () => {
           if (nameDotEl) {
             // Ensure it sits outside any SplitText created wrappers
             nameDotEl.parentElement?.appendChild(nameDotEl);
-            gsap.set(nameDotEl, { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' });
+            gsap.set(nameDotEl, { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' });
           }
 
           // Only set animation for elements that exist and are valid
@@ -519,11 +519,11 @@ const WarpedSlider = () => {
               entryTL.to(validTitleWords, {
               y: "0%",
                 opacity: 1,
-                duration: 0.95,
-                ease: "power3.out",
-                stagger: { amount: 0.28 },
+                duration: 0.75,
+                ease: "power2.out",
+                stagger: { amount: 0.2 },
                 filter: 'blur(0px)',
-              }, 0.6);
+              }, 0.5);
             }
           }
 
@@ -535,11 +535,11 @@ const WarpedSlider = () => {
               entryTL.to(validFullNameWords, {
                 y: "0%",
                 opacity: 1,
-                duration: 0.9,
-                ease: "power4.out",
-                stagger: 0.08,
+                duration: 0.7,
+                ease: "power3.out",
+                stagger: 0.06,
                 filter: 'blur(0px)',
-              }, 0.62);
+              }, 0.5);
             }
           }
 
@@ -550,8 +550,8 @@ const WarpedSlider = () => {
             nameDot.style.display = 'inline-block';
             nameDot.style.willChange = 'transform, opacity';
             entryTL.fromTo(nameDot,
-              { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' },
-              { y: 0, scale: 1, opacity: 1, duration: 1.0, ease: 'elastic.out(1.2, 0.36)' },
+              { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' },
+              { y: 0, scale: 1, opacity: 1, duration: 1.2, ease: 'elastic.out(1.4, 0.3)' },
               '>-0.05'
             );
           }
@@ -563,9 +563,9 @@ const WarpedSlider = () => {
               entryTL.to(validDescLines, {
                 y: "0%",
                 opacity: 1,
-                duration: 0.95,
-                ease: "power3.out",
-                stagger: { amount: 0.32 },
+                duration: 0.75,
+                ease: "power2.out",
+                stagger: { amount: 0.25 },
                 filter: 'blur(0px)',
               }, "<+0.01");
               // re-trigger highlight animation on slide entry after lines render
@@ -616,11 +616,11 @@ const WarpedSlider = () => {
               entryTL.to(validTagLines, {
                 y: "0%",
                 opacity: 1,
-                duration: 0.95,
-                ease: "power3.out",
-                stagger: { amount: 0.28 },
+                duration: 0.75,
+                ease: "power2.out",
+                stagger: { amount: 0.2 },
                 filter: 'blur(0px)',
-              }, "-=0.48");
+              }, "-=0.4");
             }
           }
 
@@ -633,9 +633,9 @@ const WarpedSlider = () => {
             entryTL.to(newCounterLines, {
               y: "0%",
                 opacity: 1,
-              duration: 0.9,
-              ease: "power4.out",
-              stagger: { amount: 0.24 },
+              duration: 0.7,
+                ease: "power2.out",
+              stagger: { amount: 0.18 },
               filter: 'blur(0px)',
             }, "<");
           }
@@ -648,10 +648,10 @@ const WarpedSlider = () => {
             }
             entryTL.to(newFromToRows, {
               opacity: 1,
-              duration: 0.6,
-              stagger: 0.1,
+              duration: 0.5,
+              stagger: 0.08,
                 ease: "power2.out",
-            }, 0.95);
+            }, 0.9);
           }
 
           // Animate profile stats container with full name
@@ -662,7 +662,7 @@ const WarpedSlider = () => {
               entryTL.to(profileImg, {
                 opacity: 1,
                 filter: 'blur(0px)',
-                duration: 0.8,
+                duration: 0.6,
                 ease: "power2.out",
               }, 0.4);
             }
@@ -718,9 +718,9 @@ const WarpedSlider = () => {
               opacity: 1,
               scale: 1,
               y: 0,
-              duration: 1.2,
-              ease: "power3.out",
-            }, 0.8);
+              duration: 0.9,
+              ease: "power2.out",
+            }, 0.7);
 
             // Animate category titles with growing lines first
             categoryTitles.forEach((title, index) => {
@@ -728,14 +728,14 @@ const WarpedSlider = () => {
                 opacity: 1,
                 y: 0,
                 filter: 'blur(0px)',
-                duration: 0.8,
+                duration: 0.6,
                 ease: "power2.out",
                 onComplete: () => {
                   // Add class to trigger growing line animation
                   title.classList.add('animate-line');
                   title.classList.add('visible');
                 }
-              }, 1.2 + (index * 0.2));
+              }, 1.0 + (index * 0.15));
             });
 
             // Animate tech items after lines are fully extended
@@ -746,9 +746,9 @@ const WarpedSlider = () => {
                 y: 0,
                 rotationX: 0,
                 filter: 'blur(0px)',
-                duration: 0.6,
-                stagger: 0.04,
-                ease: "back.out(1.7)",
+                duration: 0.5,
+                stagger: 0.03,
+                ease: "back.out(1.5)",
                 onComplete: () => {
                   // Ensure tech items are visible after animation
                   gsap.set(techItems, {
@@ -760,10 +760,8 @@ const WarpedSlider = () => {
                   });
                   // Add visible class to all tech items
                   techItems.forEach(item => item.classList.add('visible'));
-                  
-
                 }
-              }, 2.0); // Reduced delay - wait less for category titles
+              }, 1.6); // Reduced delay - wait less for category titles
             }
           }
         }, 40);
@@ -971,7 +969,7 @@ const WarpedSlider = () => {
   const fullNameWordsFiltered = Array.from(fullNameWords).filter(el => !el.querySelector('.name-dot') && el.textContent.trim() !== '.');
   gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWordsFiltered], { y: "100%", filter: 'blur(6px)', opacity: 0 });
   if (nameDotInitial) {
-    gsap.set(nameDotInitial, { y: -36, scale: 0.5, opacity: 0, transformOrigin: '50% 100%' });
+    gsap.set(nameDotInitial, { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' });
   }
     if (fromToRows.length > 0) {
       gsap.set(fromToRows, { opacity: 0 });
@@ -985,7 +983,7 @@ const WarpedSlider = () => {
     if (titleWords.length > 0) {
       // slightly longer pre-delay and fade for smoother entry
       gsap.to(content, { opacity: 1, duration: 0.7, ease: 'power2.out', delay: 0.3 });
-      gsap.to(titleWords, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.1 });
+      gsap.to(titleWords, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.0, ease: "power2.out", stagger: 0.08, delay: 0.9 });
       // reveal underline after text comes in (only for opted-in titles)
       const h1 = content.querySelector('.slide-title h1.underline');
       if (h1) setTimeout(() => h1.classList.add('title-show'), 900);
@@ -1005,7 +1003,7 @@ const WarpedSlider = () => {
       const updated = content.querySelectorAll('.slide-description .line');
       gsap.set(updated, { y: '100%', opacity: 0, filter: 'blur(6px)' });
       const tl = gsap.timeline();
-      tl.to(updated, { y: '0%', opacity: 1, filter: 'blur(0px)', duration: 1.1, ease: 'power3.out', stagger: 0.1, delay: 0.8 });
+      tl.to(updated, { y: '0%', opacity: 1, filter: 'blur(0px)', duration: 0.9, ease: 'power2.out', stagger: 0.08, delay: 0.7 });
       // After description fully reveals, trigger ALL highlights simultaneously
       tl.call(() => {
         const allHl = content.querySelectorAll('.hl-orange, .hl-soft-pink, .hl-soft-blue, .hl-soft-cream, .hl-soft-sage');
@@ -1030,26 +1028,26 @@ const WarpedSlider = () => {
 
     // Animate tag lines
     if (tagLines.length > 0) {
-      gsap.to(tagLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.3, ease: "power2.out", stagger: 0.12, delay: 1.25 });
+      gsap.to(tagLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.0, ease: "power2.out", stagger: 0.08, delay: 1.1 });
     }
 
     // spotify animates via tagLines
 
     // Animate counter lines
     if (counterLines.length > 0) {
-      gsap.to(counterLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.2, ease: "power2.out", stagger: 0.12, delay: 1.3 });
+      gsap.to(counterLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 0.9, ease: "power2.out", stagger: 0.08, delay: 1.2 });
     }
 
     // Animate full name words and bounce the trailing period in a dedicated timeline
     if (fullNameWordsFiltered.length > 0 || nameDotInitial) {
       const nameTL = gsap.timeline({ delay: 1.05 });
       if (fullNameWordsFiltered.length > 0) {
-        nameTL.to(fullNameWordsFiltered, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 1.0, ease: "power4.out", stagger: 0.08 });
+        nameTL.to(fullNameWordsFiltered, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: "power3.out", stagger: 0.06 });
       }
       if (nameDotInitial) {
         nameTL.fromTo(nameDotInitial,
-          { y: -28, scale: 0.55, opacity: 0, transformOrigin: '50% 100%' },
-          { y: 0, scale: 1, opacity: 1, duration: 1.15, ease: 'elastic.out(1.25, 0.34)' },
+          { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' },
+          { y: 0, scale: 1, opacity: 1, duration: 1.2, ease: 'elastic.out(1.4, 0.3)' },
           '>-0.05'
         );
       }
@@ -1061,7 +1059,7 @@ const WarpedSlider = () => {
         gsap.to(fromTo, { opacity: 1, duration: 0.4, ease: 'power2.out', delay: 0.9 });
         setTimeout(() => fromTo.style.setProperty('--lineScale', '1'), 950);
       }
-      gsap.to(fromToRows, { opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out", delay: 0.95 });
+      gsap.to(fromToRows, { opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.9 });
     }
 
     // Animate profile picture and full name container on initial load
@@ -1080,7 +1078,7 @@ const WarpedSlider = () => {
       if (profileImg) {
         gsap.to(profileImg, {
           opacity: 1,
-          duration: 0.8,
+          duration: 0.6,
           ease: "power2.out",
           delay: 0.5,
         });
@@ -1102,9 +1100,9 @@ const WarpedSlider = () => {
         opacity: 1,
         scale: 1,
         y: 0,
-        duration: 1.2,
-        ease: "power3.out",
-        delay: 0.8,
+        duration: 0.9,
+        ease: "power2.out",
+        delay: 0.7,
       });
 
       // Animate category titles with growing lines first
@@ -1115,9 +1113,9 @@ const WarpedSlider = () => {
         gsap.to(title, {
           opacity: 1,
           y: 0,
-          duration: 0.8,
+          duration: 0.6,
           ease: "power2.out",
-          delay: 1.2 + (index * 0.2),
+          delay: 1.0 + (index * 0.15),
           onComplete: () => {
             // Add class to trigger growing line animation
             title.classList.add('animate-line');
@@ -1141,10 +1139,10 @@ const WarpedSlider = () => {
           scale: 1,
           y: 0,
           rotationX: 0,
-          duration: 0.6,
-          stagger: 0.04,
-          ease: "back.out(1.7)",
-          delay: 2.0, // Reduced delay - wait less for category titles
+          duration: 0.5,
+          stagger: 0.03,
+          ease: "back.out(1.5)",
+          delay: 1.6, // Reduced delay - wait less for category titles
           onComplete: () => {
             // Ensure tech items are visible after animation
             gsap.set(techItems, {

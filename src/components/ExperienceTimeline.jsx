@@ -17,52 +17,51 @@ const ExperienceTimeline = ({ isExiting = false }) => {
     {
       company: "Princeton IPA Lab",
       position: "AI Researcher",
-      duration: "12.03.24 - Present",
+      duration: "Sep. 2024 - Present",
       location: "Princeton, NJ",
-      description: "Modeled and mitigated LLM/VLM hallucinations via DRM false-memory tests: executed a 32-variant clause-level prompt-factorial, probed representational drift, and optimized blocked vs. interleaved curricula—tracking recall/precision and lure hallucination rates."
+      description: "Led 1K+ trials showing blocked curricula reduced hallucinations by ~25%. Orchestrated 32 prompt variants across 10 models (~47K runs) with 3-4% improvement. Designed VLM Loftus-Palmer study on framing effects."
     },
     {
       company: "Remora Capital",
-      position: "Quantitative Developer", 
-      duration: "05.01.25 - 09.09.25",
-      location: "Remote",
-      description: "Built a machine learning pipeline to predict natural gas price direction and magnitude following hurricanes, engineering storm-specific and market features and validating with time-aware splits, achieving 78.6% post-landfall directional accuracy and halving post-landfall prediction error."
+      position: "Machine Learning Engineer",
+      duration: "May 2025 - Sep. 2025",
+      location: "Lexington, VA",
+      description: "Forecasted S&P 400 MidCap returns using market + news signals. Built hurricane pipeline achieving 78.6% post-landfall accuracy and ~50% lower error."
     },
     {
-      company: "MyChance",
-      position: "Founding Engineer", 
-      duration: "05.12.25 - Present",
-      location: "Remote",
-      description: "Building centralized AI college counselor."
-    },
-    {
-      company: "Princeton Vision and Learning Lab", 
-      position: "ML/CV Researcher",
-      duration: "09.05.25 - Present",
+      company: "MyChance.ai",
+      position: "Founding Engineer",
+      duration: "Apr. 2025 - Present",
       location: "Princeton, NJ",
-      description: "Developing large-scale datasets and synthetic pipelines for dynamic camera intrinsic prediction, combining real-world video collection, data cleanup, and model training to advance 3D vision tasks. Advised by Erich Liang."
-    }
-    ,
+      description: "Launched college admissions platform with 3,000+ sign-ups. Implemented AI matching engine and data-driven model reducing overestimated probabilities by 20%."
+    },
+    {
+      company: "Princeton Vision & Learning Lab",
+      position: "Machine Learning/Computer Vision Researcher",
+      duration: "Sep. 2025 - Present",
+      location: "Princeton, NJ",
+      description: "Designing video benchmark to evaluate detector robustness across lens settings. Developing simulation loop to recover accuracy under distribution shift."
+    },
     {
       company: "COS226 UCA",
       position: "Undergraduate Course Assistant",
-      duration: "09.07.25 - Present",
+      duration: "Sep. 2025 - Present",
       location: "Princeton, NJ",
-      description: "Data structures and algorithm grader."
+      description: "Supported 200+ students in Data Structures & Algorithms via grading and targeted feedback; reinforced analysis of graphs, Union-Find, Trees."
     },
     {
       company: "Hoagie Club",
       position: "Software Developer",
-      duration: `09.13.25 - Present`,
+      duration: "Sep. 2025 - Present",
       location: "Princeton, NJ",
-      description: "Working under the HoagieMeal team."
+      description: "Contributing to HoagieMeal team projects and maintaining club infrastructure."
     },
     {
       company: "HackPrinceton",
       position: "Software Developer",
-      duration: `09.17.25 - Present`,
+      duration: "Sep. 2025 - Present",
       location: "Princeton, NJ",
-      description: "Working on the development team for Princeton's premiere hackathon."
+      description: "Contributing to development team building web applications for annual hackathon events."
     }
   ];
 
