@@ -355,7 +355,7 @@ const WarpedSlider = () => {
                      '<p class="social-link" data-url="https://www.linkedin.com/in/calebk25/">LinkedIn</p>' +
            '<p class="social-link" data-url="https://github.com/calebK25">GitHub</p>' +
            '<p class="social-link" data-url="/resume">Resume</p>' +
-            '<div class="spotify-container"><p class="spotify-line">NOT PLAYING</p></div>'
+            '<div class="spotify-container" aria-label="Now Playing"><p class="spotify-line">NOT PLAYING</p></div>'
           : 
           slideData.slideTags.map(tag => `<p>${tag}</p>`).join('')
         }

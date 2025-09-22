@@ -175,7 +175,7 @@ a {
 .hl-paper-mint::before { background: #DDF2EA; }
 
 /* Papers list under description */
-.papers-list { position: absolute; top: calc(100% + 4px); left: 50%; transform: translate(-50%, 0); display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 0; opacity: 0; filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); z-index: 11062; pointer-events: none; width: 100vw; }
+.papers-list { position: absolute; top: calc(100% + 4px); left: 50%; transform: translate(-50%, 0); display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; margin-top: 0; opacity: 0; filter: blur(6px); transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 300ms cubic-bezier(.22,1,.36,1); z-index: 11055; pointer-events: none; width: auto; max-width: 92vw; padding: 0 6px; }
 .papers-tabs { display: inline-flex; justify-content: center; align-items: center; position: relative; z-index: 11063; }
 .papers-tab { cursor: pointer; letter-spacing: 0.08em; opacity: 0.9; font-family: var(--font-geist-mono), monospace; font-size: 12px; padding-bottom: 2px; text-transform: lowercase; }
 /* Clean underline hover animation for "cool readings" */
@@ -183,7 +183,9 @@ a {
 .papers-tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: rgba(0,0,0,0.65); transform: scaleX(0); transform-origin: left; transition: transform 240ms cubic-bezier(.22,1,.36,1); }
 .papers-tab:hover::after, .papers-tab:focus-visible::after { transform: scaleX(1); }
 .papers-items, .playlists-items { display: none; }
-.papers-list.papers-in { opacity: 1; transform: translate(-50%, 0); filter: blur(0px); pointer-events: auto; }
+.papers-list.papers-in { opacity: 1; transform: translate(-50%, 0); filter: blur(0px); }
+.papers-list .papers-tabs { pointer-events: auto; }
+.papers-list .papers-reveal { pointer-events: none; }
 .papers-reveal { display: inline-flex; flex-wrap: wrap; gap: 12px; justify-content: center; opacity: 0; filter: blur(6px); transform: translateY(6px); transition: opacity 320ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1); text-align: center; pointer-events: none; will-change: opacity, transform, filter; width: 100%; }
 .papers-reveal.show { opacity: 1; filter: blur(0px); transform: translateY(0); }
 .papers-list .papers-tab, .papers-reveal a { transition: opacity 300ms cubic-bezier(.22,1,.36,1), transform 300ms cubic-bezier(.22,1,.36,1), filter 320ms cubic-bezier(.22,1,.36,1); will-change: opacity, transform, filter; }
@@ -807,8 +809,8 @@ a {
   inset: 0;
   background: #000;
   opacity: 0;
-  z-index: 12000;
-  pointer-events: none;
+  z-index: 9000; /* below header and interactive elements */
+  pointer-events: none; /* never capture clicks */
 }
 
 .spotify-line-container, .slide-tags .spotify-container {
@@ -821,6 +823,7 @@ a {
   margin: 0;
   border-radius: 0;
   position: relative;
+  z-index: 11070; /* ensure hover receives pointer events above text line */
 }
 
 .spotify-line {
@@ -837,7 +840,7 @@ a {
   color: #000;
 }
 
-.slide-tags .spotify-container { position: relative; }
+.slide-tags .spotify-container { position: relative; pointer-events: auto; }
 .slide-tags .spotify-container .spotify-line {
   display: inline-block;
   will-change: transform;
