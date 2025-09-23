@@ -432,6 +432,7 @@ const WarpedSlider = () => {
           const newCounterLines = newContent.querySelectorAll(".slide-index-wrapper .line");
           const newFromToRows = newContent.querySelectorAll(".fromto .ft-row");
           const newFromTo = newContent.querySelector('.fromto');
+          const receiptBits = newContent.querySelectorAll('.receipt-overlay .corner-logo, .receipt-overlay .serial-code, .receipt-overlay .crop, .receipt-overlay .watermark');
 
           // Do not inject micro-meta on About to maintain fixed header spacing
 
@@ -443,6 +444,9 @@ const WarpedSlider = () => {
               gsap.set(newFromTo, { opacity: 0 });
               newFromTo.style.setProperty('--lineScale', '0');
             }
+          }
+          if (receiptBits && receiptBits.length > 0) {
+            gsap.set(receiptBits, { opacity: 0, y: 8, filter: 'blur(6px)' });
           }
 
           // Set initial state for the trailing period so it can bounce in
@@ -631,6 +635,19 @@ const WarpedSlider = () => {
             }
           }
 
+          // Animate receipt overlay tags (ABT-01, crops, watermark, logo)
+          if (receiptBits && receiptBits.length > 0) {
+            const serial = newContent.querySelector('.receipt-overlay .serial-code');
+            const crops = newContent.querySelectorAll('.receipt-overlay .crop');
+            const logo = newContent.querySelector('.receipt-overlay .corner-logo');
+            const watermark = newContent.querySelector('.receipt-overlay .watermark');
+            // Subtle, quick, and ordered
+            if (logo) entryTL.to(logo, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.28, ease: 'power2.out' }, "<+0.05");
+            if (serial) entryTL.to(serial, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.3, ease: 'power2.out' }, ">-0.1");
+            if (crops && crops.length > 0) entryTL.to(crops, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.3, ease: 'power2.out', stagger: 0.05 }, ">-0.12");
+            if (watermark) entryTL.to(watermark, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.32, ease: 'power2.out' }, ">-0.12");
+          }
+
           // spotify animates as part of tag lines (no special casing)
 
 
@@ -817,29 +834,16 @@ const WarpedSlider = () => {
       }, 0.1);
     }
 
-    // Animate full name words exit (left-to-right)
-    const currentFullNameWords = currentContent.querySelectorAll(".full-name .word");
-    if (currentFullNameWords.length > 0) {
-      exitTL.to(currentFullNameWords, {
+    // Animate full name as a single block on exit (words + dot together)
+    const fullNameBlock = currentContent.querySelector('.full-name');
+    if (fullNameBlock) {
+      exitTL.to(fullNameBlock, {
         y: "-100%",
         opacity: 0,
         filter: 'blur(6px)',
-        duration: 0.5,
-        stagger: { amount: 0.24, from: 0 },
+        duration: 0.6,
         ease: "power2.inOut",
       }, 0.1);
-    }
-
-    // Animate trailing period exit AFTER the last word so it doesn't leave first
-    const currentNameDot = currentContent.querySelector('.full-name .name-dot');
-    if (currentNameDot) {
-      exitTL.to(currentNameDot, {
-        y: "-100%",
-        opacity: 0,
-        filter: 'blur(6px)',
-        duration: 0.45,
-        ease: 'power2.inOut',
-      }, '>-0.02');
     }
 
     // Animate description lines exit
@@ -866,6 +870,24 @@ const WarpedSlider = () => {
         stagger: { amount: 0.36 },
         ease: "power2.inOut",
       }, 0.1);
+    }
+
+    // Animate receipt overlay bits (logo, ABT-01, crops, watermark) on exit
+    const currentSerial = currentContent.querySelector('.receipt-overlay .serial-code');
+    const currentCrops = currentContent.querySelectorAll('.receipt-overlay .crop');
+    const currentLogo = currentContent.querySelector('.receipt-overlay .corner-logo');
+    const currentWatermark = currentContent.querySelector('.receipt-overlay .watermark');
+    if (currentLogo) {
+      exitTL.to(currentLogo, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.28, ease: 'power2.inOut' }, 0.1);
+    }
+    if (currentSerial) {
+      exitTL.to(currentSerial, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.3, ease: 'power2.inOut' }, '>-0.12');
+    }
+    if (currentCrops && currentCrops.length > 0) {
+      exitTL.to(currentCrops, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.3, stagger: 0.05, ease: 'power2.inOut' }, '>-0.12');
+    }
+    if (currentWatermark) {
+      exitTL.to(currentWatermark, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.32, ease: 'power2.inOut' }, '>-0.12');
     }
 
     // Animate Cool Readings out like text

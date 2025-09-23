@@ -184,8 +184,9 @@ const EjectPage = ({ onRewind }) => {
       }}>
         <p className="eject-page-text" style={{ 
           marginBottom: '1rem',
+          color: 'white',
         }}>
-          {spinner} {count} EJECTED
+          <span style={{ color: 'white' }}>{spinner}</span> <span style={{ color: 'white' }}>{count} EJECTED</span>
         </p>
         <p className="eject-page-description" style={{ 
           margin: '1.25rem auto 0',
