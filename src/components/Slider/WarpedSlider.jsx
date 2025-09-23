@@ -124,7 +124,13 @@ const WarpedSlider = () => {
       desc.textContent = text;
       desc.innerHTML = html;
       // Build sleek papers list: merge dynamic matches with defaults and dedupe by title
-      const merged = [...paperEntries, ...papersData];
+      // Ensure Pokemon Red via RL is always present
+      const ensure = [...paperEntries];
+      const hasPokemon = ensure.some(e => e.title === 'Pokemon Red via RL');
+      if (!hasPokemon) {
+        ensure.push({ title: 'Pokemon Red via RL', href: 'https://arxiv.org/pdf/2502.19920', cls: 'paper-chip hl-paper-lilac' });
+      }
+      const merged = [...ensure, ...papersData];
       const toRender = Array.from(new Map(merged.map(item => [item.title, item])).values());
       if (toRender.length > 0) {
         let list = container.querySelector('.papers-list');
@@ -811,7 +817,7 @@ const WarpedSlider = () => {
       }, 0.1);
     }
 
-    // Animate full name words exit
+    // Animate full name words exit (left-to-right)
     const currentFullNameWords = currentContent.querySelectorAll(".full-name .word");
     if (currentFullNameWords.length > 0) {
       exitTL.to(currentFullNameWords, {
@@ -819,12 +825,12 @@ const WarpedSlider = () => {
         opacity: 0,
         filter: 'blur(6px)',
         duration: 0.5,
-        stagger: { amount: 0.24 },
+        stagger: { amount: 0.24, from: 0 },
         ease: "power2.inOut",
       }, 0.1);
     }
 
-    // Animate trailing period exit (excluded from SplitText words)
+    // Animate trailing period exit AFTER the last word so it doesn't leave first
     const currentNameDot = currentContent.querySelector('.full-name .name-dot');
     if (currentNameDot) {
       exitTL.to(currentNameDot, {
@@ -833,7 +839,7 @@ const WarpedSlider = () => {
         filter: 'blur(6px)',
         duration: 0.45,
         ease: 'power2.inOut',
-      }, 0.1);
+      }, '>-0.02');
     }
 
     // Animate description lines exit
