@@ -123,8 +123,9 @@ const WarpedSlider = () => {
       // Reset to plain text then inject to avoid old wrappers accumulating
       desc.textContent = text;
       desc.innerHTML = html;
-      // Build sleek papers list beneath the description (from constants to avoid missing inline matches)
-      const toRender = paperEntries.length > 0 ? paperEntries : papersData;
+      // Build sleek papers list: merge dynamic matches with defaults and dedupe by title
+      const merged = [...paperEntries, ...papersData];
+      const toRender = Array.from(new Map(merged.map(item => [item.title, item])).values());
       if (toRender.length > 0) {
         let list = container.querySelector('.papers-list');
         if (!list) {
