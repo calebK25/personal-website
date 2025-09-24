@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { gsap } from "gsap";
 import { PowerGlitch } from "powerglitch";
 
 const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
@@ -11,8 +12,26 @@ const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
   const timerRef = useRef(null);
   const spinnerRef = useRef(null);
   const audioRef = useRef(null);
+  const rootRef = useRef(null);
+
+  useLayoutEffect(() => {
+    // Pre-hide to avoid one-frame flash before GSAP applies
+    if (rootRef.current) {
+      rootRef.current.style.opacity = '0';
+      rootRef.current.style.filter = 'blur(6px)';
+      rootRef.current.style.transform = 'translateY(-12px)';
+      rootRef.current.style.willChange = 'transform, filter, opacity';
+    }
+  }, []);
 
   useEffect(() => {
+    // Intro animation to match page title reveal
+    if (rootRef.current) {
+      try {
+        gsap.to(rootRef.current, { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out', delay: 0.55 });
+      } catch {}
+    }
+
     audioRef.current = new Audio("/effect.webm");
 
     // Timer functionality with timeline
@@ -70,6 +89,7 @@ const VHSHeader = ({ onEject, isRec = false, onToggleRecord }) => {
 
   return (
     <div
+      ref={rootRef}
       className="vhs-header"
       style={{
         position: 'fixed',
