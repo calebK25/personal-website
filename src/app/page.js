@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import ProgressLanding from "@/components/ProgressLanding";
+import VHSLanding from "@/components/VHSLanding";
 import VHSHeader from "@/components/VHSHeader";
 import WarpedSlider from "@/components/Slider/WarpedSlider";
 import EjectPage from "@/components/EjectPage";
@@ -108,7 +108,7 @@ export default function Home() {
           <WarpedSlider />
         </>
       ) : (
-        <ProgressLanding key={landingKey} onStart={handleStart} />
+        <VHSLanding key={landingKey} onStart={handleStart} />
       )}
     </div>
   );
