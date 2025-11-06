@@ -17,7 +17,6 @@ const VHSLanding = ({ onStart }) => {
   const timeIntervalRef = useRef(null);
   const vcrRef = useRef(null);
   const glitchInstancesRef = useRef([]);
-  const warpRafRef = useRef(null);
 
     useEffect(() => {
     // Create audio element
@@ -168,21 +167,6 @@ const VHSLanding = ({ onStart }) => {
       }, 100);
     }
 
-    // Subtle GSAP-like blur/pulse animation (retro look)
-    const overlay = vcrRef.current;
-    let last = 0;
-    const loop = (ts) => {
-      const t = ts / 1000;
-      if (overlay) {
-        const blur = 0.6 + 0.6 * Math.abs(Math.sin(t * 1.3));
-        const opacity = 0.94 + 0.06 * Math.sin(t * 0.85 + 0.4);
-        overlay.style.filter = `grayscale(1) blur(${blur}px)`;
-        overlay.style.opacity = `${opacity}`;
-      }
-      warpRafRef.current = requestAnimationFrame(loop);
-    };
-    warpRafRef.current = requestAnimationFrame(loop);
-
     // Cleanup function
     return () => {
       // Remove click listener to prevent sound from playing after component unmounts
@@ -204,8 +188,6 @@ const VHSLanding = ({ onStart }) => {
         }
       });
       glitchInstancesRef.current = [];
-
-      if (warpRafRef.current) cancelAnimationFrame(warpRafRef.current);
     };
   }, [isInitialized, onStart]);
 
@@ -217,50 +199,44 @@ const VHSLanding = ({ onStart }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: '#000',
-        filter: 'grayscale(1)',
+        backgroundColor: '#1d4ed8',
         zIndex: 9999,
         display: 'block',
       }}
     >
-      {/* Fullscreen CRT curvature overlays */}
-      <div className="crt-barrel" />
-      <div className="crt-bulge" />
+      {/* TV Static Effect */}
+      <div className="tv-static"></div>
+      
+      {/* Scanlines Effect */}
+      <div className="scanlines"></div>
+      
+      {/* Screen Distortion Effect */}
+      <div className="screen-distortion"></div>
 
-      {/* Curved screen layer (full screen, effects remain on top) */}
-      <div className="crt-curved">
-              {/* TV Static Effect */}
-              <div className="tv-static"></div>
-              {/* Scanlines Effect */}
-              <div className="scanlines"></div>
-              {/* Screen Distortion Effect */}
-              <div className="screen-distortion"></div>
-
-              <div 
-                ref={vcrRef}
-                style={{
-                  position: 'absolute',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  backgroundColor: 'transparent',
-                  pointerEvents: 'none',
-                  width: '100%',
-                  fontSize: '2.25rem',
-                  height: '100%',
-                  paddingBottom: '8rem',
-                  padding: '2rem',
-                  color: 'white',
-                  fontFamily: 'VCR, monospace',
-                  transition: 'opacity 0.5s',
-                  zIndex: 10000,
-                  filter: 'grayscale(1)',
-                }}
-                className="overlay"
-              >
+      <div 
+        ref={vcrRef}
+        style={{
+          position: 'absolute',
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#1d4ed8',
+          pointerEvents: 'none',
+          width: '100%',
+          fontSize: '2.25rem',
+          height: '100vh',
+          paddingBottom: '8rem',
+          padding: '2rem',
+          color: 'white',
+          fontFamily: 'VCR, monospace',
+          transition: 'opacity 0.5s',
+          zIndex: 10000,
+        }}
+        className="overlay"
+      >
         {/* Top section with PLAY and timer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'auto' }}>
-          <div className="glitch chromatic-text chromatic-ghost" style={{ color: 'white', fontSize: '3rem', fontFamily: 'VCR, monospace' }}>PLAY ►</div>
-          <div className="glitch chromatic-text chromatic-ghost" style={{ color: 'white', fontSize: '3rem', fontFamily: 'VCR, monospace' }}>{timer}</div>
+          <div className="glitch chromatic-text" style={{ color: 'white', fontSize: '3rem', fontFamily: 'VCR, monospace' }}>PLAY ►</div>
+          <div className="glitch chromatic-text" style={{ color: 'white', fontSize: '3rem', fontFamily: 'VCR, monospace' }}>{timer}</div>
         </div>
 
         {/* Middle section with reminder */}
@@ -295,24 +271,17 @@ const VHSLanding = ({ onStart }) => {
           fontSize: '1.5rem',
           fontFamily: 'VCR, monospace'
         }}>
-          <div className="glitch chromatic-text chromatic-ghost" style={{ color: 'white', fontFamily: 'VCR, monospace' }}>
+          <div className="glitch chromatic-text" style={{ color: 'white', fontFamily: 'VCR, monospace' }}>
             TIME: {currentTime}
           </div>
-          <div className="glitch chromatic-text chromatic-ghost" style={{ color: 'white', fontFamily: 'VCR, monospace' }}>
+          <div className="glitch chromatic-text" style={{ color: 'white', fontFamily: 'VCR, monospace' }}>
             DATE: {currentDate}
           </div>
-          <div className="glitch chromatic-text chromatic-ghost" style={{ color: 'white', fontFamily: 'VCR, monospace' }}>
+          <div className="glitch chromatic-text" style={{ color: 'white', fontFamily: 'VCR, monospace' }}>
             {location}
           </div>
         </div>
       </div>
-      </div>
-      {/* Scanline sweep overlay */}
-      <div className="scanline-sweep" />
-      {/* Tracking band overlay */}
-      <div className="tracking-band" />
-      {/* Vignette breathe overlay */}
-      <div className="vhs-vignette" />
     </div>
   );
 };

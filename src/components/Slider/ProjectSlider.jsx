@@ -658,15 +658,6 @@ const ProjectSlider = () => {
   return (
     <div ref={containerRef} className="project-slider-container paper">
       <div ref={contentRef} className="project-content">
-        <div className="receipt-overlay">
-          <div className="corner-logo"></div>
-          <div className="serial-code">PRJ-0{currentProjectIndex+1}</div>
-          <div className="crop crop-tl"></div>
-          <div className="crop crop-tr"></div>
-          <div className="crop crop-bl"></div>
-          <div className="crop crop-br"></div>
-          <div className="watermark">{new Date().toISOString().slice(0,10)}-PRJ</div>
-        </div>
         <div className="kv-row with-leaders show-key show-value animate" style={{ marginBottom: '8px' }}>
           <span className="kv-key">Status</span>
           <span className="kv-value">{currentProject.title.toLowerCase() === 'refrain' ? 'Inactive' : 'Active'}</span>

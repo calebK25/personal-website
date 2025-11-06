@@ -131,15 +131,6 @@ const ExperienceTimeline = ({ isExiting = false }) => {
 
   return (
     <div className={`experience-list small ${isExiting ? 'timeline-exit' : ''} paper`} ref={listRef}>
-      <div className="receipt-overlay">
-        <div className="corner-logo"></div>
-        <div className="serial-code">EXP-02</div>
-        <div className="crop crop-tl"></div>
-        <div className="crop crop-tr"></div>
-        <div className="crop crop-bl"></div>
-        <div className="crop crop-br"></div>
-        <div className="watermark">{new Date().toISOString().slice(0,10)}-EXP</div>
-      </div>
       <div className="kv-row with-leaders" style={{ marginBottom: '8px' }}>
         <span className="kv-key">Section</span>
         <span className="kv-value">Experience</span>

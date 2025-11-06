@@ -696,15 +696,6 @@ const ThreeJSSlider = () => {
 
   return (
     <div ref={containerRef} className="threejs-slider-container paper">
-      <div className="receipt-overlay">
-        <div className="corner-logo"></div>
-        <div className="serial-code">PHO-04</div>
-        <div className="crop crop-tl"></div>
-        <div className="crop crop-tr"></div>
-        <div className="crop crop-bl"></div>
-        <div className="crop crop-br"></div>
-        <div className="watermark">{new Date().toISOString().slice(0,10)}-PHO</div>
-      </div>
       {/* Location row removed */}
       {/* Palette row (right aligned) */}
       {palette && palette.length > 0 && (

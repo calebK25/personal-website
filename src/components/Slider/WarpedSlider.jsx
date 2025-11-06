@@ -191,15 +191,7 @@ const WarpedSlider = () => {
     // Split full name into words
     const name = container.querySelector(".full-name h1");
     if (name) {
-      // Temporarily detach the trailing period so SplitText doesn't capture it
-      const dot = name.querySelector('.name-dot');
-      if (dot) {
-        dot.remove();
-      }
       splitTitleToWords(name);
-      if (dot) {
-        name.appendChild(dot);
-      }
     }
 
     // Split description, tags, and index into lines
@@ -333,7 +325,7 @@ const WarpedSlider = () => {
     if (slideIndex === 0) {
       fullNameHTML = `
         <div class="full-name">
-          <h1>Caleb Kha-Uong<span class="name-dot">.</span></h1>
+          <h1>Caleb Kha-Uong</h1>
         </div>
       `;
     }
@@ -402,22 +394,6 @@ const WarpedSlider = () => {
         currentContent.remove();
         slider.appendChild(newContent);
 
-        // Inject receipt overlay for About slide if missing before splitting
-        if (nextIndex === 0 && newContent && !newContent.querySelector('.receipt-overlay')) {
-          const overlay = document.createElement('div');
-          overlay.className = 'receipt-overlay';
-          overlay.innerHTML = `
-            <div class="corner-logo"></div>
-            <div class="serial-code">ABT-01</div>
-            <div class="crop crop-tl"></div>
-            <div class="crop crop-tr"></div>
-            <div class="crop crop-bl"></div>
-            <div class="crop crop-br"></div>
-            <div class="watermark">${new Date().toISOString().slice(0,10)}-001</div>
-          `;
-          newContent.appendChild(overlay);
-        }
-
         // Will prepare animated elements after splitting
 
         setTimeout(() => {
@@ -432,7 +408,6 @@ const WarpedSlider = () => {
           const newCounterLines = newContent.querySelectorAll(".slide-index-wrapper .line");
           const newFromToRows = newContent.querySelectorAll(".fromto .ft-row");
           const newFromTo = newContent.querySelector('.fromto');
-          const receiptBits = newContent.querySelectorAll('.receipt-overlay .corner-logo, .receipt-overlay .serial-code, .receipt-overlay .crop, .receipt-overlay .watermark');
 
           // Do not inject micro-meta on About to maintain fixed header spacing
 
@@ -444,17 +419,6 @@ const WarpedSlider = () => {
               gsap.set(newFromTo, { opacity: 0 });
               newFromTo.style.setProperty('--lineScale', '0');
             }
-          }
-          if (receiptBits && receiptBits.length > 0) {
-            gsap.set(receiptBits, { opacity: 0, y: 8, filter: 'blur(6px)' });
-          }
-
-          // Set initial state for the trailing period so it can bounce in
-          const nameDotEl = newContent.querySelector('.full-name .name-dot');
-          if (nameDotEl) {
-            // Ensure it sits outside any SplitText created wrappers
-            nameDotEl.parentElement?.appendChild(nameDotEl);
-            gsap.set(nameDotEl, { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' });
           }
 
           // Only set animation for elements that exist and are valid
@@ -538,10 +502,10 @@ const WarpedSlider = () => {
             }
           }
 
-          // Animate full name words (exclude the period)
+          // Animate full name words
           const newFullNameWords = newContent.querySelectorAll(".full-name .word");
           if (newFullNameWords && newFullNameWords.length > 0) {
-            const validFullNameWords = Array.from(newFullNameWords).filter(el => el && el.nodeType === 1 && !el.querySelector('.name-dot') && el.textContent.trim() !== '.');
+            const validFullNameWords = Array.from(newFullNameWords).filter(el => el && el.nodeType === 1);
             if (validFullNameWords.length > 0) {
               entryTL.to(validFullNameWords, {
                 y: "0%",
@@ -552,19 +516,6 @@ const WarpedSlider = () => {
                 filter: 'blur(0px)',
               }, 0.5);
             }
-          }
-
-          // Bounce the trailing period into place after the name appears
-          const nameDot = newContent.querySelector('.full-name .name-dot');
-          if (nameDot) {
-            // Ensure the dot isn't wrapped by SplitText lines
-            nameDot.style.display = 'inline-block';
-            nameDot.style.willChange = 'transform, opacity';
-            entryTL.fromTo(nameDot,
-              { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' },
-              { y: 0, scale: 1, opacity: 1, duration: 1.2, ease: 'elastic.out(1.4, 0.3)' },
-              '>-0.05'
-            );
           }
 
           // Animate description lines
@@ -633,19 +584,6 @@ const WarpedSlider = () => {
                 filter: 'blur(0px)',
               }, "-=0.4");
             }
-          }
-
-          // Animate receipt overlay tags (ABT-01, crops, watermark, logo)
-          if (receiptBits && receiptBits.length > 0) {
-            const serial = newContent.querySelector('.receipt-overlay .serial-code');
-            const crops = newContent.querySelectorAll('.receipt-overlay .crop');
-            const logo = newContent.querySelector('.receipt-overlay .corner-logo');
-            const watermark = newContent.querySelector('.receipt-overlay .watermark');
-            // Subtle, quick, and ordered
-            if (logo) entryTL.to(logo, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.28, ease: 'power2.out' }, "<+0.05");
-            if (serial) entryTL.to(serial, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.3, ease: 'power2.out' }, ">-0.1");
-            if (crops && crops.length > 0) entryTL.to(crops, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.3, ease: 'power2.out', stagger: 0.05 }, ">-0.12");
-            if (watermark) entryTL.to(watermark, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.32, ease: 'power2.out' }, ">-0.12");
           }
 
           // spotify animates as part of tag lines (no special casing)
@@ -834,17 +772,19 @@ const WarpedSlider = () => {
       }, 0.1);
     }
 
-    // Animate full name as a single block on exit (words + dot together)
-    const fullNameBlock = currentContent.querySelector('.full-name');
-    if (fullNameBlock) {
-      exitTL.to(fullNameBlock, {
+    // Animate full name words exit (left-to-right)
+    const currentFullNameWords = currentContent.querySelectorAll(".full-name .word");
+    if (currentFullNameWords.length > 0) {
+      exitTL.to(currentFullNameWords, {
         y: "-100%",
         opacity: 0,
         filter: 'blur(6px)',
-        duration: 0.6,
+        duration: 0.5,
+        stagger: { amount: 0.24, from: 0 },
         ease: "power2.inOut",
       }, 0.1);
     }
+
 
     // Animate description lines exit
     const currentDescLines = currentContent.querySelectorAll(".slide-description .line");
@@ -870,24 +810,6 @@ const WarpedSlider = () => {
         stagger: { amount: 0.36 },
         ease: "power2.inOut",
       }, 0.1);
-    }
-
-    // Animate receipt overlay bits (logo, ABT-01, crops, watermark) on exit
-    const currentSerial = currentContent.querySelector('.receipt-overlay .serial-code');
-    const currentCrops = currentContent.querySelectorAll('.receipt-overlay .crop');
-    const currentLogo = currentContent.querySelector('.receipt-overlay .corner-logo');
-    const currentWatermark = currentContent.querySelector('.receipt-overlay .watermark');
-    if (currentLogo) {
-      exitTL.to(currentLogo, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.28, ease: 'power2.inOut' }, 0.1);
-    }
-    if (currentSerial) {
-      exitTL.to(currentSerial, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.3, ease: 'power2.inOut' }, '>-0.12');
-    }
-    if (currentCrops && currentCrops.length > 0) {
-      exitTL.to(currentCrops, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.3, stagger: 0.05, ease: 'power2.inOut' }, '>-0.12');
-    }
-    if (currentWatermark) {
-      exitTL.to(currentWatermark, { y: "-8px", opacity: 0, filter: 'blur(6px)', duration: 0.32, ease: 'power2.inOut' }, '>-0.12');
     }
 
     // Animate Cool Readings out like text
@@ -968,38 +890,18 @@ const WarpedSlider = () => {
     
     // Defer content fade until after initial states are set to avoid pop-in
 
-    // Add receipt overlay elements once on initial slide
-    if (content && !content.querySelector('.receipt-overlay')) {
-      const overlay = document.createElement('div');
-      overlay.className = 'receipt-overlay';
-      overlay.innerHTML = `
-        <div class="corner-logo"></div>
-        <div class="serial-code">ABT-01</div>
-        <div class="crop crop-tl"></div>
-        <div class="crop crop-tr"></div>
-        <div class="crop crop-bl"></div>
-        <div class="crop crop-br"></div>
-        <div class="watermark">${new Date().toISOString().slice(0,10)}-001</div>
-      `;
-      content.appendChild(overlay);
-    }
-
     // Select split elements produced earlier in processTextElements
     const titleWords = content.querySelectorAll(".slide-title .word");
     const descLines = content.querySelectorAll(".slide-description .line");
     const tagLines = content.querySelectorAll(".slide-tags .line");
     const counterLines = content.querySelectorAll(".slide-index-wrapper .line");
     const fullNameWords = content.querySelectorAll(".full-name .word");
-  const nameDotInitial = content.querySelector('.full-name .name-dot');
     const fromToRows = content.querySelectorAll(".fromto .ft-row");
     const fromTo = content.querySelector('.fromto');
 
   // Set initial state with blur but hidden to avoid pre-appearance glow
-  const fullNameWordsFiltered = Array.from(fullNameWords).filter(el => !el.querySelector('.name-dot') && el.textContent.trim() !== '.');
+  const fullNameWordsFiltered = Array.from(fullNameWords).filter(el => el && el.nodeType === 1);
   gsap.set([...titleWords, ...descLines, ...tagLines, ...counterLines, ...fullNameWordsFiltered], { y: "100%", filter: 'blur(6px)', opacity: 0 });
-  if (nameDotInitial) {
-    gsap.set(nameDotInitial, { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' });
-  }
     if (fromToRows.length > 0) {
       gsap.set(fromToRows, { opacity: 0 });
       if (fromTo) {
@@ -1067,19 +969,10 @@ const WarpedSlider = () => {
       gsap.to(counterLines, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 0.9, ease: "power2.out", stagger: 0.08, delay: 1.2 });
     }
 
-    // Animate full name words and bounce the trailing period in a dedicated timeline
-    if (fullNameWordsFiltered.length > 0 || nameDotInitial) {
+    // Animate full name words
+    if (fullNameWordsFiltered.length > 0) {
       const nameTL = gsap.timeline({ delay: 1.05 });
-      if (fullNameWordsFiltered.length > 0) {
-        nameTL.to(fullNameWordsFiltered, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: "power3.out", stagger: 0.06 });
-      }
-      if (nameDotInitial) {
-        nameTL.fromTo(nameDotInitial,
-          { y: -36, scale: 0.4, opacity: 0, transformOrigin: '50% 100%' },
-          { y: 0, scale: 1, opacity: 1, duration: 1.2, ease: 'elastic.out(1.4, 0.3)' },
-          '>-0.05'
-        );
-      }
+      nameTL.to(fullNameWordsFiltered, { y: "0%", opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: "power3.out", stagger: 0.06 });
     }
 
     // Animate From/To rows after tags
@@ -1417,7 +1310,7 @@ const WarpedSlider = () => {
           <div className="profile-stats-container">
             {/* Full Name with Didot styling for B and G */}
             <div className="full-name">
-              <h1>Caleb Kha-Uong<span className="name-dot">.</span></h1>
+              <h1>Caleb Kha-Uong</h1>
             </div>
             
             <div className="profile-container">
