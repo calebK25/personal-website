@@ -746,7 +746,7 @@ a {
 
 .threejs-slider-container {
   width: 100%;
-  height: 50vh;
+  height: 62vh;
 }
 
 .threejs-slider-container canvas {
@@ -797,6 +797,8 @@ a {
   z-index: 1000;
   text-align: center;
   pointer-events: none;
+  max-width: 90vw;
+  padding: 0 12px;
 }
 
 .threejs-image-title h3 {
@@ -807,6 +809,8 @@ a {
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: normal; /* allow wrapping */
+  word-break: break-word; /* break long words if needed */
 }
 
 .page-transition-overlay {

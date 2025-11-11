@@ -22,6 +22,9 @@ const ThreeJSSlider = () => {
 
   // Photography images from the public/photography directory
   const photographySlides = [
+    { title: "Ivy League Meet 2025", location: "Ivy League Meet 2025", image: "/photography/IMG_4383.jpeg" },
+    { title: "Brooklyn Bridge", location: "Brooklyn Bridge", image: "/photography/DSCF1076.JPG" },
+    { title: "Princeton University", location: "Princeton University", image: "/photography/DSCF0930.JPG" },
     { title: "San Juan", location: "San Juan, Puerto Rico", image: "/photography/San Juan, Puerto Rico.jpg" },
     { title: "Kyoto", location: "Kyoto, Japan", image: "/photography/Kyoto.jpg" },
     { title: "Shibuya Crossing", location: "Shibuya, Japan", image: "/photography/Shibuya Crossing.jpg" },
@@ -151,7 +154,7 @@ const ThreeJSSlider = () => {
     const viewportHeight = 2 * Math.tan(fov / 2) * cameraRef.current.position.z;
     const viewportWidth = viewportHeight * cameraRef.current.aspect;
 
-    const widthFactor = window.innerWidth < 900 ? 0.9 : 0.5;
+    const widthFactor = window.innerWidth < 900 ? 0.95 : 0.68;
     const planeWidth = viewportWidth * widthFactor;
     const planeHeight = planeWidth * (9 / 16);
 
